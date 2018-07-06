@@ -1,5 +1,4 @@
 import re
-import pandas as pd
 import warnings
 
 path = 'btest2.txt'
