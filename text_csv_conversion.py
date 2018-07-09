@@ -1,13 +1,3 @@
-import re
-import warnings
-
-path = 'btest2.txt'
-text = open(path,'r')
-final = open('csvfile3.csv','w')
-regex = '(\s\s)+[0-9]+'
-regex_space = '([ ]{2,})+'
-
-
 def text_list(text,lst):
     max_length = 0
     for line in text:
@@ -136,34 +126,4 @@ def one_column(text):
         final.write(line)
         print (line)
                 
-        
-text, max_length = text_list(text,[])
-data = find_spaces(text,regex,regex_space,[])
-print("DATA")
-for line in data:
-    print (line)
-columns, max_column_arr = get_columns(data)
-print ('NUMBER OF COLUMNS')
-print (columns)
-print ('columns_arr')
-print (max_column_arr)
-print()
-top = find_top(data,columns)
-print ('top')
-print (top)
-print ()
-if top is None:
-    one_column(text)
-else:
-    points = check_whitespace(text,max_column_arr,top,max_length)
-    print ('points')
-    print (points)
-    new_top, is_stacked = flag(max_column_arr,points, top)
-    while True: 
-        if not is_stacked:
-            break
-        print("new top: " + str(new_top))
-        points = check_whitespace(text,max_column_arr,new_top,max_length) 
-        new_top, is_stacked = flag(max_column_arr,points, new_top)
-    print("final top: " + str(new_top))
-    convert(text,points,data, new_top)
+ 
