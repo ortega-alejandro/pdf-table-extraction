@@ -2,19 +2,13 @@ import cv2
 import numpy as np
 import re
 import subprocess
-from wand.image import Image
-from PyPDF2 import PdfFileReader
-from PIL import Image as test
-from pdfminer.pdfdocument import PDFDocument
+from PIL import Image as im
 from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTFigure
+from pdfminer.layout import LTTextBox, LTTextLine, LTFigure
 
 '''FUNCTION: FIND DIMENSIONS OF PDF AND JPG BY PAGE'''
 def find_dimensions(pdf, page_no):
-    file = test.open('image-'+str(page_no)+'.jpg')
+    file = im.open('image-'+str(page_no)+'.jpg')
     jpg_width, jpg_height = file.size
     page = pdf.getPage(page_no).mediaBox
     #page is structured as (0, 0, width, height)
@@ -32,8 +26,7 @@ def convert(x1, y1, x2, y2, jpg_width, jpg_height, pdf_width, pdf_height):
     return x1_pdf, y1_pdf, x2_pdf, y2_pdf
 
 '''FUNCTION: PARSE THROUGH PDF TO FIND ALL TABLE HEADERS BY REGEX'''
-    #returns a list of the top coordinates of each table header on the page and
-        #the number of tables on that page
+    #returns a list of the top coordinates of each table header on the page and the number of tables on that page
 def find_table_headers(layout, pdf_height):
     top_coords = []
     tables = 0
@@ -51,8 +44,7 @@ def find_table_headers(layout, pdf_height):
             l, b, r, top = (lt_obj.bbox)
             top = pdf_height-top
             top_coords.append(top)
-            #top_coords is an array of the top coordinates of each 
-                #table header on a page
+            #top_coords is an array of the top coordinates of each table header on a page
         elif isinstance(lt_obj, LTFigure):
             #if the object is a figure, recursively parse through the figure 
             find_table_headers(lt_obj, pdf_height)
@@ -92,8 +84,7 @@ def get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width,
     return lines_arr, num_lines
 
 '''FUNCTION: DETERMINE BOX COORDINATES OF A TABLE'''
-    #combines data from top coordinates (table headers) and line coordinates to 
-        #give an overall box around the table
+    #combines data from top coordinates (table headers) and line coordinates to give an overall box around the table
     #returns bottom, top, left, right coordinates
 def find_table_coords(top_coords, line_coords, line_count, table_header_count):
     #line_coords is structured as (x1, y1, x2, y2)
@@ -160,8 +151,7 @@ def one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, t
     
 '''FUNCTION: PAGE WITH MULTIPLE TABLES'''
     #creates a text file for each table
-    #returns counts for table headers, lines, and total tables to use as a starting
-        #point for the next table
+    #returns counts for table headers, lines, and total tables to use as a starting point for the next table
 def multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_header_count, table_count):
     bottom, top, left, right = find_table_coords(top_coords, line_coords, line_count, table_header_count)
     width = right-left
@@ -187,7 +177,7 @@ def multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_
     IN THE DOCUMENT. THIS FUNCTION GOES THROUGH THE PDF PAGE BY PAGE'''
     #input = kernel_size, rho, theta, threshold, minLineLength, maxLineGap
     #returns number of tables in the whole document
-def function_calls(my_pdf, pdf, fp, interpreter, device, kernel_size, rho, theta, threshold, minLineLength, maxLineGap, num):
+def function_calls(kernel_size=5, rho=1, theta=np.pi/2, threshold=50, minLineLength=500, maxLineGap=1):
     table_count = 0
     for page_no in range(num):  
         '''FIND DIMENSIONS OF PAGE'''
@@ -242,7 +232,7 @@ def function_calls(my_pdf, pdf, fp, interpreter, device, kernel_size, rho, theta
                         line_count+=1
                     if line_count == line_count_before_loop:
                         #if there are no lines between 2 table headers, it is not a table
-                            #likely this regex was found inside the text
+                        #likely this regex was found inside the text
                         table_header_count +=1
                         if print_mode:
                             print ("not a table")
@@ -269,11 +259,3 @@ print_mode = True
 regex = "^(?!\s)(Table|Annex|TABLE)\s+([1-9]+[A-Z]?|[A-Z]?)\.?:?\s?"
 textfile_name = 'btest'
 linefile_name = 'houghlines'
-rho = 1
-theta = np.pi/2
-threshold = 50
-minLineLength = 500
-maxLineGap = 1
-kernel_size = 5
-
-function_calls(my_pdf, pdf, fp, interpreter, device, kernel_size, rho, theta, threshold, minLineLength, maxLineGap, num)
