@@ -1,26 +1,14 @@
-from PyPDF2 import PdfFileReader
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
-import re
-import warnings
-
-table_count=0
-regex = "^(?!\s)(Table|Annex|TABLE)\s+([1-9]+[A-Z]?|[A-Z]?)\.?:?\s?"
-fp = open(my_pdf, 'rb')
-doc = PDFDocument(parser)
-parser = PDFParser(fp)
-rsrcmgr = PDFResourceManager()
-laparams = LAParams()
-device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-interpreter = PDFPageInterpreter(rsrcmgr, device)
-pdf = PdfFileReader(open(my_pdf, 'rb'))
-num = pdf.getNumPages()
+import text_csv_conversion as tcc
+import pdf_processing as pdfp
+import pdf_extraction as pdfe
 
 
-path = 'btest2.txt'
-text = open(path,'r')
-final = open('csvfile3.csv','w')
-regex = '(\s\s)+[0-9]+'
-regex_space = '([ ]{2,})+'
+def main():
+    pdfp.convert_pdf("sample.pdf")  # Converts pdf to JPEG
+    pdfe.function_calls()  # Extracts the tables
+    tcc.convert_all()  # Converts text output to CSV
+    # If you want to clean the directory with pictures, call pdfp.clean('images')
+
+
+if __name__ == "__main__":
+    main()

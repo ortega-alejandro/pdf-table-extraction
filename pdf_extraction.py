@@ -4,11 +4,31 @@ import re
 import subprocess
 from PIL import Image as im
 from pdfminer.pdfpage import PDFPage
-from pdfminer.layout import LTTextBox, LTTextLine, LTFigure
+from PyPDF2 import PdfFileReader
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTFigure
+
+my_pdf = "sample.pdf"
+regex = "^(?!\s)(Table|Annex|TABLE)\s+([1-9]+[A-Z]?|[A-Z]?)\.?:?\s?"
+
+# set up: organize PDF to use with PDFMiner
+fp = open(my_pdf, 'rb')
+parser = PDFParser(fp)
+rsrcmgr = PDFResourceManager()
+laparams = LAParams()
+device = PDFPageAggregator(rsrcmgr, laparams=laparams)
+interpreter = PDFPageInterpreter(rsrcmgr, device)
+
+# determine number of pages and dimensions pdf
+pdf = PdfFileReader(open(my_pdf, 'rb'), strict = False)
+num = pdf.getNumPages()
+print_mode = False
 
 '''FUNCTION: FIND DIMENSIONS OF PDF AND JPG BY PAGE'''
 def find_dimensions(pdf, page_no):
-    file = im.open('image-'+str(page_no)+'.jpg')
+    file = im.open('images/image-'+str(page_no)+'.jpg')
     jpg_width, jpg_height = file.size
     page = pdf.getPage(page_no).mediaBox
     #page is structured as (0, 0, width, height)
@@ -27,7 +47,7 @@ def convert(x1, y1, x2, y2, jpg_width, jpg_height, pdf_width, pdf_height):
 
 '''FUNCTION: PARSE THROUGH PDF TO FIND ALL TABLE HEADERS BY REGEX'''
     #returns a list of the top coordinates of each table header on the page and the number of tables on that page
-def find_table_headers(layout, pdf_height):
+def find_table_headers(layout, pdf_height, regex, print_mode=False):
     top_coords = []
     tables = 0
     for lt_obj in layout:
@@ -35,35 +55,36 @@ def find_table_headers(layout, pdf_height):
         if isinstance(lt_obj, LTTextBox) or isinstance(lt_obj, LTTextLine):
             #if the object is a textbox or line, look for regex
             text = lt_obj.get_text()
-            result = re.search(regex,text)    
+            result = re.search(regex, text)
             if result is None:
                 continue
             #found the regex in that box object
-            print(text)
-            tables +=1
+            if print_mode:
+                print(text)
+            tables += 1
             l, b, r, top = (lt_obj.bbox)
             top = pdf_height-top
             top_coords.append(top)
             #top_coords is an array of the top coordinates of each table header on a page
         elif isinstance(lt_obj, LTFigure):
             #if the object is a figure, recursively parse through the figure 
-            find_table_headers(lt_obj, pdf_height)
+            find_table_headers(lt_obj, pdf_height, regex)
     return top_coords, tables
     
 '''FUNCTION: IMPLEMENTS FIND_TABLE_HEADERS BY PAGE'''
     #inputs page number
     #returns top coordinates array of tbale headers and number of tables on that page
-def find_tables(fp, interpreter, device, num, pdf_height):
-    page = PDFPage.get_pages(fp,pagenos=[num])
+def find_tables(num, pdf_height):
+    page = PDFPage.get_pages(fp, pagenos=[num])
     for p in page:
         interpreter.process_page(p)
     layout = device.get_result()
-    arr, tables_per_page = find_table_headers(layout, pdf_height)
+    arr, tables_per_page = find_table_headers(layout, pdf_height, regex)
     return tables_per_page, arr
 
 '''FUNCTION: FIND LINES AND COORDINATES OF THOSE LINES BY PAGE'''
     #returns array of coorinates of all lines on a page and number of total lines
-def get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width, pdf_height):
+def get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width, pdf_height, linefile_name):
     lines_arr = []
     num_lines = 0
     if (lines is not None):
@@ -108,7 +129,7 @@ def print_details(table_header_count, left, right, top, bottom, width, height):
 '''FUNCTION: IMAGE PRE-PROCESSING'''
 def image_processing(page_no, kernel_size):
     #read in jpg by page
-    img = cv2.imread('image-'+str(page_no)+'.jpg')
+    img = cv2.imread('images/image-'+str(page_no)+'.jpg')
     #convert image to grayscale
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     #blur the image slightly (improves line detection)
@@ -120,14 +141,14 @@ def image_processing(page_no, kernel_size):
     return img, edges, line_image
 
 '''FUNCTION: CREATE TEXT FILE USING COORDINATES OF TABLE'''
-def pdftotext(my_pdf, textfile_name, table, left, top, width, height, table_number):
+def pdftotext(my_pdf, textfile_name, table, left, top, width, height, table_number, print_mode=False):
     output = textfile_name + str(table_number) + ".txt"
     subprocess.call(["pdftotext","-f",str(table),"-l",str(table),"-x",str(int(left)),"-y",str(int(top)),"-W",str(int(width)),"-H",str(int(height)),"-layout",my_pdf,output])
 
 '''FUNCTION: LAST TABLE OF THE PAGE OR PAGE WITH ONLY ONE TABLE'''
     #creates a text file for that table
     #returns table_count
-def one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, table_header_count, table_count):
+def one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, table_header_count, table_count, textfile_name, print_mode = False):
     #PRINT BOX COORDINATES: TOP - REGEX, LEFT & RIGHT & BOTTOM - LAST LINE OF TABLE
     #go to the last line
     line_count = num_lines
@@ -152,7 +173,7 @@ def one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, t
 '''FUNCTION: PAGE WITH MULTIPLE TABLES'''
     #creates a text file for each table
     #returns counts for table headers, lines, and total tables to use as a starting point for the next table
-def multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_header_count, table_count):
+def multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_header_count, table_count, textfile_name, print_mode = False):
     bottom, top, left, right = find_table_coords(top_coords, line_coords, line_count, table_header_count)
     width = right-left
     height = bottom-top
@@ -173,89 +194,88 @@ def multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_
     return table_header_count, table_count, line_count
 
 
-'''FUNCTION: COMBINE ALL HELPER FUNCTIONS ABOVE TO CREATE TEXT FILES FOR EACH TABLE 
-    IN THE DOCUMENT. THIS FUNCTION GOES THROUGH THE PDF PAGE BY PAGE'''
-    #input = kernel_size, rho, theta, threshold, minLineLength, maxLineGap
-    #returns number of tables in the whole document
-def function_calls(kernel_size=5, rho=1, theta=np.pi/2, threshold=50, minLineLength=500, maxLineGap=1):
+# input = kernel_size, rho, theta, threshold, minLineLength, maxLineGap
+# returns number of tables in the whole document
+def function_calls(kernel_size=5, rho=1, theta=np.pi / 2, threshold=50, minLineLength=500, maxLineGap=1):
     table_count = 0
-    for page_no in range(num):  
-        '''FIND DIMENSIONS OF PAGE'''
+    textfile_name = 'temp/btest'
+    for page_no in range(num):
+        # '''FIND DIMENSIONS OF PAGE'''
         jpg_width, jpg_height, pdf_width, pdf_height = find_dimensions(pdf, page_no)
-        
+
         '''IMAGE PRE-PROCESSING FOR HOUGHLINE DETECTION'''
-        img, edges, line_image = image_processing(page_no,kernel_size)
-        
+        img, edges, line_image = image_processing(page_no, kernel_size)
+
         '''FIND TABLES ON EACH PAGE BY REGEX'''
-        number_of_tables, top_coords = find_tables(fp, interpreter, device, num, pdf_height)
-    
+        number_of_tables, top_coords = find_tables(page_no, pdf_height)
+
         '''FIND AND DRAW LINES'''
-        lines = cv2.HoughLinesP(edges,rho,theta,threshold,np.array([]),minLineLength,maxLineGap)
-        line_coords, num_lines = get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width, pdf_height)
-        
+        lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]), minLineLength, maxLineGap)
+        linefile_name = 'images/houghlines'
+        line_coords, num_lines = get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width,
+                                           pdf_height, linefile_name)
+
         '''PRINT PAGE INFORMATION'''
         if print_mode:
-            print ("page " +str(page_no+1)) 
-            print ("JPG width: " + str(jpg_width))
-            print ("JPG height: " + str(jpg_height))
-            print ("PDF width: " + str(pdf_width))
-            print ("PDF height: " + str(pdf_height))
-            print ("number of tables: "+str(number_of_tables))
-            print ("table headings: ")
-            print (top_coords)
-            print ("lines:")
-            print (line_coords)
-            print ("total lines: "+str(num_lines))
-        
+            print("page " + str(page_no + 1))
+            print("JPG width: " + str(jpg_width))
+            print("JPG height: " + str(jpg_height))
+            print("PDF width: " + str(pdf_width))
+            print("PDF height: " + str(pdf_height))
+            print("number of tables: " + str(number_of_tables))
+            print("table headings: ")
+            print(top_coords)
+            print("lines:")
+            print(line_coords)
+            print("total lines: " + str(num_lines))
+
         '''EACH PAGE HAS 3 POSSIBLE CASES: MORE THAN 1 TABLE, 1 TABLE, NO TABLE'''
-        #Beginning of page: set table header and line counts to 0
+        # Beginning of page: set table header and line counts to 0
         table_header_count = 0
-        line_count=0
+        line_count = 0
         '''MORE THAN ONE TABLE ON A PAGE'''
         if number_of_tables > 1 and num_lines > 0:
-            while line_count<num_lines:
-                if table_header_count > number_of_tables-1:   
-                    #BEYOND LAST TABLE HEADER
+            while line_count < num_lines:
+                if table_header_count > number_of_tables - 1:
+                    # BEYOND LAST TABLE HEADER
                     break
-                if table_header_count == number_of_tables-1: 
-                    #LAST TABLE HEADER
-                    table_count = one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, table_header_count, table_count)
+                if table_header_count == number_of_tables - 1:
+                    # LAST TABLE HEADER
+                    table_count = one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count,
+                                            table_header_count, table_count, textfile_name)
                     break
-                else:   
-                    #ANY TABLE HEADER EXCEPT THE LAST
-                    line_count_before_loop = line_count  
-                    #loop through lines to get to the last line of a table
-                    #last line detected by: y-coordinate of line is greater than the table header top coordinate and
-                        #y-coordinate of line is less than top coordinate of next table header
-                    while (line_count<num_lines and line_coords[line_count][3] > top_coords[table_header_count] and 
-                               line_coords[line_count][3] < top_coords[table_header_count+1]):
-                        line_count+=1
+                else:
+                    # ANY TABLE HEADER EXCEPT THE LAST
+                    line_count_before_loop = line_count
+                    # loop through lines to get to the last line of a table
+                    # last line detected by: y-coordinate of line is greater than the table header top coordinate and
+                    # y-coordinate of line is less than top coordinate of next table header
+                    while (line_count < num_lines and line_coords[line_count][3] > top_coords[table_header_count] and
+                           line_coords[line_count][3] < top_coords[table_header_count + 1]):
+                        line_count += 1
                     if line_count == line_count_before_loop:
-                        #if there are no lines between 2 table headers, it is not a table
-                        #likely this regex was found inside the text
-                        table_header_count +=1
+                        # if there are no lines between 2 table headers, it is not a table
+                        # likely this regex was found inside the text
+                        table_header_count += 1
                         if print_mode:
-                            print ("not a table")
-                            print ()
+                            print("not a table")
+                            print()
                     else:
-                        table_header_count, table_count, line_count = multiple_tables(my_pdf, page_no, line_count, top_coords, line_coords, table_header_count, table_count)               
-    
-        '''PAGE ONLY HAS ONE TABLE'''       
-        if number_of_tables == 1 and num_lines > 0:    
-            table_count = one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, table_header_count, table_count)
-    
-        '''PAGE HAS NO TABLES'''
-        if number_of_tables <1:
-            continue
-            if print_mode:
-                print ("no tables")
-                
-    if print_mode:
-        print ("TOTAL TABLES: "+str(table_count))
-    return table_count
+                        table_header_count, table_count, line_count = multiple_tables(my_pdf, page_no, line_count,
+                                                                                      top_coords, line_coords,
+                                                                                      table_header_count, table_count, textfile_name)
 
-####################### RELEVANT VARIABLES AND FINAL CALL########################
-print_mode = True
-regex = "^(?!\s)(Table|Annex|TABLE)\s+([1-9]+[A-Z]?|[A-Z]?)\.?:?\s?"
-textfile_name = 'btest'
-linefile_name = 'houghlines'
+        '''PAGE ONLY HAS ONE TABLE'''
+        if number_of_tables == 1 and num_lines > 0:
+            table_count = one_table(my_pdf, page_no, num_lines, top_coords, line_coords, line_count, table_header_count,
+                                    table_count, textfile_name)
+
+        '''PAGE HAS NO TABLES'''
+        if number_of_tables < 1:
+            if print_mode:
+                print("no tables")
+            continue
+
+    if print_mode:
+        print("TOTAL TABLES: " + str(table_count))
+    return table_count

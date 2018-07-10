@@ -1,0 +1,14 @@
+Table 2
+Comparison of policy options to promote renewable electricity
+
+                                    Renewable electricity portfolio   Feed-in tariffs                 Renewables obligation
+                                    standard
+
+Ensures quantity of renewable       Yes                               No                              Yes
+energy and diversity of supply?
+Promotes investment by              No                                Yes                             Yes
+guaranteeing prices?
+Does not require government to      Depends whether target is         If price is differentiated by   Yes
+pick a winner?                      differentiated                    technology
+Requires government investment      No                                Yes                             Yes
+

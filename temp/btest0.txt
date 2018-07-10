@@ -1,0 +1,15 @@
+Table 1
+Estimates of theoretical potential for renewable energy sources in
+South Africa
+
+Resource              DANCED/DME           Howells      RE White
+                      (PJ/yr)                           Paper
+
+Wind                   6                          50    21
+Bagasse               47                          49    18
+Wood                  44                         220
+Hydro                 40                          20    36
+Solar                                      8 500 000
+Agricultural waste                                20
+Wood waste                                               9
+
