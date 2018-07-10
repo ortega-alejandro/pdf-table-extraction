@@ -1,21 +1,19 @@
-
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import PDFPageAggregator
+from pdfminer.converter import TextConverter, PDFPageAggregator
+from pdfminer.pdfdevice import PDFDevice
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed, PDFPage
-from pdfminer.layout import LAParams, LTTextBox, LTTextLine
+from pdfminer.layout import LAParams, LTTextBox, LTLine, LTFigure, LTImage, LTRect, LTTextLine
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from owlready2 import *
 from nltk.stem.porter import *
+import io
 import re
 import os
 from nltk.stem.porter import *
 import operator
 from PyPDF2 import PdfFileReader
 import pandas as pd
-
-
-
 
 
 
@@ -28,7 +26,7 @@ def initialize_stemmer():
     stemmer = PorterStemmer()
     return stemmer
     
-def load_ontology():
+def load_ontology(ontology_path):
     onto = get_ontology(ontology_path).load()
     return onto
 
@@ -225,15 +223,16 @@ def find_matches_wholedoc(doc_text, arr_stemmed_ontology, threshold):
     matches_sorted = [] 
     for i in range(len(matches_freq_sorted)):
         matches_sorted.append(matches_freq_sorted[i][0])
-    return matches_sorted, matches_count, matches_freq
+    return matches_sorted, matches_count, matches_freq, matches_freq_sorted
 
 
 
     
 '''SECOND DICTIONARY'''
 
-def build_second_dict(matches_sorted, frequency_matrix_df):
+def build_second_dict(matches_sorted, frequency_matrix_df, page_thresh):
     pmatches_by_keyword = {}
+    pdf3 = PdfFileReader(open(my_pdf, 'rb'))
     for word in matches_sorted:   
         if word not in pmatches_by_keyword.keys():
             pmatches_by_keyword[word] = []
@@ -241,10 +240,15 @@ def build_second_dict(matches_sorted, frequency_matrix_df):
             if (header == word):
                 column_num = position
         page_list = frequency_matrix_df.iloc[:,column_num].tolist()
-        while(max(page_list) != 0):
-            index = page_list.index(max(page_list))
-            pmatches_by_keyword[word].append(index+1)
-            page_list[index] = 0
+        freq_list = []
+        for index in range(len(page_list)):
+            page = pdf3.getPage(index)
+            num_of_words_page = (len(page.extractText()))
+            freq = round((page_list[index]/num_of_words_page),5)
+            if freq >= page_thresh:
+                freq_list.append((index+1,freq))
+        freq_list = sorted(freq_list, key=operator.itemgetter(1), reverse=True)
+        pmatches_by_keyword[word] = freq_list
     return pmatches_by_keyword
       
 
@@ -270,7 +274,6 @@ def findParent(word, chain):
 def all_chains(matches_sorted):
     all_chains = []
     for i in range(len(matches_sorted)): 
-        parent = []
         parent_chain = [matches_sorted[i]]
         findParent(matches_sorted[i], parent_chain)
         all_chains.append(parent_chain)
@@ -345,68 +348,64 @@ def traverse_tree(all_chains):
 
 
 
+################################ MAIN RUN FUNCTION ###############################################
 
-################################ INITIALIZE VARIABLES ##############################################################
+def run(my_pdf, ontology_path, page_threshold=0.005, threshold=0.03, number_of_levels=3, print_output=True, print_debug=False):
+    stemmer = initialize_stemmer()
+    onto = load_ontology(ontology_path)
+    arr = populate_ontology_array(onto)
+    arr_dictionary = ontology_dictionary(onto, arr, stemmer)
+    frequency_matrix, doc_text = build_frequency_matrix(my_pdf, arr_dictionary)
+    frequency_matrix_df, column_headers = convert_into_df(frequency_matrix, arr_dictionary)
+    pmatches_by_page = build_first_dict(my_pdf, frequency_matrix, column_headers, page_threshold)
+    matches_sorted, matches_count, matches_freq, matches_freq_sorted = find_matches_wholedoc(doc_text, arr_dictionary, threshold)
+    pmatches_by_keyword = build_second_dict(matches_sorted, frequency_matrix_df, page_threshold)
+    all_chain = all_chains(matches_sorted)
+    simplified_chains = traverse_tree(all_chain)
+    
+    if print_debug:
+        print("Entire ontology: ")
+        print(arr)    
+        print("\nFrequency matrix: ")
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            display(frequency_matrix_df) 
+        print("\nStemmed ontology:")
+        for key in arr_dictionary:
+            print(key, arr_dictionary[key])       
+        print("\nALL CHAINS: ")
+        print ("Total number of chains: " + str(len(all_chains)))
+        for i in all_chains:
+            print(i)
+    if print_output:
+        print("\nMATCHED WORDS, FOR ENTIRE DOCUMENT: ")
+        print("Total number of matched words: " + str(len(matches_sorted)))
+        for word in matches_sorted:
+            print (word + " appears "+ str(matches_count[word]) + " times with frequency " + str(matches_freq[word]))  
+        print("\nMATCHES BY PAGE: ")
+        for key in pmatches_by_page:
+            print(str(key+1), pmatches_by_page[key])   
+        print("\nMATCHES BY KEYWORD: ")
+        for key in pmatches_by_keyword:
+            print(key, pmatches_by_keyword[key])
+        print("\nSIMPLIFIED CHAINS: ")
+        print ("Total number of chains: "+str(len(simplified_chains)))
+        for i in simplified_chains:
+            print(i[:number_of_levels])
+    
+    return simplified_chains, matches_freq_sorted, pmatches_by_page, pmatches_by_keyword
 
-base_path = 'desktop/ml/'
-path_file = '3AC1DACD68A35562618B2A9D7B92DE841964B.pdf'
-my_pdf = os.path.join(base_path+"/"+path_file)
 
-#keyword frequency threshold value, for the entire document
-threshold = 0.03
-#keyword frequency threshold value, for each page
-page_threshold = 0.005
-#number of levels of the ontology to display to the user
-number_of_levels = 3
-ontology_path = "file:///users/jadewu/downloads/root-ontology-v9.owl"
+my_pdf = "desktop/OneDrive_2018-05-27/ml/3AC1DACD68A35562618B2A9D7B92DE841964B.pdf"
+ontology_path = "file:///users/brookeerickson/downloads/root-ontology-v9.owl"
+
+run(my_pdf, ontology_path)
+
+#keyword frequency threshold value, for the entire document automatically set to threshold = 0.03
+#keyword frequency threshold value, for each page automatically set to page_threshold = 0.005
+#number of levels of the ontology to display to the user automatically set to number_of_levels = 3
 
 
-stemmer = initialize_stemmer()
-onto = load_ontology()
-arr = populate_ontology_array(onto)
-arr_dictionary = ontology_dictionary(onto, arr, stemmer)
-frequency_matrix, doc_text = build_frequency_matrix(my_pdf, arr_dictionary)
-frequency_matrix_df, column_headers = convert_into_df(frequency_matrix, arr_dictionary)
-pmatches_by_page = build_first_dict(my_pdf, frequency_matrix, column_headers, page_threshold)
-matches_sorted, matches_count, matches_freq = find_matches_wholedoc(doc_text, arr_dictionary, threshold)
-pmatches_by_keyword = build_second_dict(matches_sorted, frequency_matrix_df)
-all_chains = all_chains(matches_sorted)
-simplified_chains = traverse_tree(all_chains)
+            
 
-print_output = True
-print_debug = False
 
-if print_debug:
-    print("the entire ontology: ")
-    print(arr)    
-if print_debug:
-    print("Frequency matrix: ")
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        display(frequency_matrix_df) 
-if print_debug:
-    print("\nStemmed ontology:")
-    for key in arr_dictionary:
-        print(key, arr_dictionary[key])       
-if print_debug:
-    print("\nALL CHAINS: ")
-    print ("Total number of chains: " + str(len(all_chains)))
-    for i in all_chains:
-        print(i)
-if print_output:
-    print("\nMATCHED WORDS, FOR ENTIRE DOCUMENT: ")
-    print("Total number of matched words: " + str(len(matches_sorted)))
-    for word in matches_sorted:
-        print (word + " appears "+ str(matches_count[word]) + " times with frequency " + str(matches_freq[word]))
-if print_output:   
-    print("\nMATCHES BY PAGE: ")
-    for key in pmatches_by_page:
-        print(str(key+1), pmatches_by_page[key])
-if print_output:   
-    print("\nMATCHES BY KEYWORD: ")
-    for key in pmatches_by_keyword:
-        print(key, pmatches_by_keyword[key])
-if print_output:
-    print("\nSIMPLIFIED CHAINS: ")
-    print ("Total number of chains: "+str(len(simplified_chains)))
-    for i in simplified_chains:
-        print(i[:number_of_levels])
+
