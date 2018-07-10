@@ -8,3 +8,5 @@
 * cv2
 * PIL
 * Wand
+
+Look at the main.py file for an example of how to extract the tables
