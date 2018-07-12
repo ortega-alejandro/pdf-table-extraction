@@ -24,5 +24,5 @@ def convert_pdf(src, dst='images/'):
 def clean(directory):
     files = os.listdir(directory)
     for file in files:
-        if file[-4:] == '.jpg':
+        if file[-4:] == '.jpg' or file[-4:] == '.txt':
             os.remove(directory + '/' + file)
