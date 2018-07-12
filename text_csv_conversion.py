@@ -314,7 +314,7 @@ def correct_encodings(line):
     return line
 
 
-def convert_all(src='temp/', dst='tables/', name='table', debug=False):
+def convert_all(src='text/', dst='csv/', name='table', debug=False):
     files = os.listdir(src)
     k = 0
     for file in files:
