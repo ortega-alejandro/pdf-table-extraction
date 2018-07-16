@@ -15,36 +15,48 @@ import re
 #TAGS = ['list-content items-list']
 #url = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
 #TAGS = ['library-card-image','small-12 medium-8 columns','docDownloads']
-url = 'https://policy.practicalaction.org/resources/publications/collection/energy'
-TAGS = [('div','list_item_content'),('ul','link')]
+#url = 'https://policy.practicalaction.org/resources/publications/collection/energy'
+#TAGS = [('div','list_item_content'),('ul','link')]
+
+#url = 'https://www.gogla.org/publications'
+#TAGS = [('a', 'unlocked')]
+
+# This website does not have pdf extension on links
+url = 'https://www.sun-connect-news.org/databases/documents/all/'
+TAGS = [('div', 'article articletype-2 topnews')]
 
 all_links = [url]
 links_visited = []
 pdf_links = []
 xlsx_links = []
-URL_PREFIX = re.search('(.*org/|.*com/|.*edu/)',url).group(0)
+URL_PREFIX = re.search('(.*org/|.*com/|.*edu/)', url).group(0)
 prefix_length = len(URL_PREFIX)
-
 
 while all_links:
     main_url = all_links[0]
     response = get(main_url)
     html_soup = BeautifulSoup(response.text, 'lxml')
-    pages = html_soup.find_all('a', text = 'Next »')
+    pages = html_soup.find_all('a', text=' Next ')
+    print(pages)
     if len(pages)>0:
         pages = URL_PREFIX+pages[0]['href']
+
+    print(pages)
     while all_links:
         current = all_links[0]
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
         links = []
         for tag_type,tag in TAGS:
-            links_page = html_soup.find_all(tag_type, class_ = tag)
-            if len(links_page)==0:
+            links_page = html_soup.find_all(tag_type, class_=tag)
+            print(links_page)
+            if len(links_page) == 0:
                 continue
-            links+=links_page
+            links += links_page
         for each in links:
-            pdf_ = each.find_all('a',href=True)
+            # print(each)
+            pdf_ = each.find_all('a', href=True)
+            # print(pdf_)
             for link in pdf_:
                 pdf_url= link['href']
                 if pdf_url[:prefix_length] != URL_PREFIX:
@@ -67,6 +79,49 @@ while all_links:
         links_visited.append(current)
     if len(pages)>0:
         all_links.append(pages)
+
+'''
+while all_links:
+    main_url = all_links[0]
+    response = get(main_url)
+    html_soup = BeautifulSoup(response.text, 'lxml')
+    pages = html_soup.find_all('a', text='More')
+    if len(pages) > 0:
+        pages = URL_PREFIX+pages[0]['href']
+    while all_links:
+        print(len(all_links))
+        print((all_links))
+        current = all_links[0]
+        response = get(current)
+        html_soup = BeautifulSoup(response.text, 'lxml')
+        links = []
+        for tag_type,tag in TAGS:
+            links_page = html_soup.find_all(tag_type, class_=tag)
+            if len(links_page) == 0:
+                continue
+            links += links_page
+        for each in links:
+            pdf_url = each['href']
+            if pdf_url[:prefix_length] != URL_PREFIX:
+                pdf_url = URL_PREFIX+str(pdf_url)
+            if pdf_url not in links_visited:
+                if pdf_url[-4:] == '.pdf':
+                    pdf_links.append(pdf_url)
+                    links_visited.append(pdf_url)
+                elif pdf_url[-5:] == '.xlsx':
+                    xlsx_links.append(pdf_url)
+                    links_visited.append(pdf_url)
+                else:
+                    all_links.append(pdf_url)
+                    links_visited.append(pdf_url)
+        if current[-4:] == '.pdf':
+            pdf_links.append(current)
+        elif current[-5:] == '.xlsx':
+            xlsx_links.append(current)
+        all_links.remove(current)
+        links_visited.append(current)
+    if len(pages)>0:
+        all_links.append(pages)'''
 
     
 print ('all_links')
