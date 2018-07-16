@@ -11,33 +11,26 @@ from requests import get
 import urllib.request
 import re
 
-#url = 'http://energyaccess.org/resources/publications/'
-#TAGS = ['list-content items-list']
-#url = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
-#TAGS = ['library-card-image','small-12 medium-8 columns','docDownloads']
-#url = 'https://policy.practicalaction.org/resources/publications/collection/energy'
-#TAGS = [('div','list_item_content'),('ul','link')]
-
-#url = 'https://www.gogla.org/publications'
-#TAGS = [('a', 'unlocked')]
-
-# This website does not have pdf extension on links
-url = 'https://www.sun-connect-news.org/databases/documents/all/'
-TAGS = [('div', 'article articletype-2 topnews')]
 
 all_links = [url]
 links_visited = []
 pdf_links = []
 xlsx_links = []
-URL_PREFIX = re.search('(.*org/|.*com/|.*edu/)', url).group(0)
+URL_PREFIX = re.search('.*org/|.*com/|.*edu/',url).group(0)
 prefix_length = len(URL_PREFIX)
 
+=======
+URL_PREFIX = re.search('.*org/|.*com/|.*edu/',url).group(0)
+prefix_length = len(URL_PREFIX)
+
+page_num = 1
+>>>>>>> 1f8a33bd7e90ceb64820eed74fb09b2d6009cbbb
 while all_links:
     main_url = all_links[0]
     response = get(main_url)
     html_soup = BeautifulSoup(response.text, 'lxml')
-    pages = html_soup.find_all('a', text=' Next ')
-    print(pages)
+    pages = html_soup.find_all('a', text = NEXT_TEXT)
+    print (page_num)
     if len(pages)>0:
         pages = URL_PREFIX+pages[0]['href']
 
@@ -62,7 +55,7 @@ while all_links:
                 if pdf_url[:prefix_length] != URL_PREFIX:
                     pdf_url = URL_PREFIX+str(pdf_url)
                 if pdf_url not in links_visited:
-                    if pdf_url[-4:] == '.pdf':
+                    if 'pdf' in pdf_url:
                         pdf_links.append(pdf_url)
                         links_visited.append(pdf_url)
                     elif pdf_url[-5:] == '.xlsx':
@@ -71,14 +64,15 @@ while all_links:
                     else:
                         all_links.append(pdf_url)
                         links_visited.append(pdf_url)
-        if current[-4:] == '.pdf':
+        if 'pdf' in current:
             pdf_links.append(current)
         elif current[-5:] == '.xlsx':
             xlsx_links.append(current)
         all_links.remove(current)
         links_visited.append(current)
-    if len(pages)>0:
+    if len(pages)>0 and page_num<=10:
         all_links.append(pages)
+        page_num+=1
 
 '''
 while all_links:
@@ -134,7 +128,7 @@ for i in pdf_links:
     print (i)
 print ('xlsx_links')
 print (len(xlsx_links))
-#urllib.request.urlretrieve(pdf_url,'energy_crisis_recovery.pdf')
+#urllib.request.urlretrieve(pdf_links[0],'energy.pdf')
 
 
 '''url = 'http://www.undp.org/content/undp/en/home/librarypage/environment-energy/low_emission_climateresilientdevelopment/derisking-renewable-energy-investment/drei-tunisia.html'
