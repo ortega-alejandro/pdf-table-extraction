@@ -13,6 +13,7 @@ import re
 
 NEXT_TEXT = '»'
 url = 'https://africaopendata.org/dataset'
+URL_PREFIX = 'https://africaopendata.org/'
 
 
 all_links = [url]
