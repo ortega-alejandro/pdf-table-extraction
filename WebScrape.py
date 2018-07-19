@@ -73,7 +73,7 @@ while all_links:
             if len(links_page)==0:
                 continue
             for each in links_page:
-                date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])      ####### OPENAFRICA,GOGLA ######
+                date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])      ####### OPENAFRICA ######
                 date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])               ####### WRI #######
                 print ("DATE")
                 print (date)

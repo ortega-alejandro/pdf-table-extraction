@@ -16,11 +16,20 @@ import re
 
 NEXT_TEXT = 'More'
 URL = 'https://www.gogla.org/publications'
-TAGS = [('div','view-content')]
-LAST_SCRAPE_DATE = 'Dec 31, 2016'
-SORTED_SITE = True
+TAGS = [('div','ds-1col node node-resource node-teaser view-mode-teaser clearfix')]
+LAST_SCRAPE_DATE = 'Dec 31, 2017'
+SORTED_SITE = False
 DATE_TAG = ('div','field field-name-post-date field-type-ds field-label-hidden')
 DATE_FORM = '%b %d, %Y'
+
+NEXT_TEXT = 'Next »'
+URL = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
+TAGS = [('div','library-card-image'),('div','small-12 medium-8 columns'),('div','docDownloads')]
+LAST_SCRAPE_DATE = 'January 1, 2017'
+SORTED_SITE = True
+DATE_TAG = ('div','library-card-date')
+DATE_FORM = '%B %d, %Y'
+
 
 
 all_links = [URL]
@@ -31,8 +40,7 @@ URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
 prefix_length = len(URL_PREFIX)
 
 
-page_num = 1
-while all_links:
+def get_next_page(all_links, NEXT_TEXT, URL_PREFIX):
     main_url = all_links[0]
     print (main_url)
     response = get(main_url)
@@ -41,50 +49,69 @@ while all_links:
     print ('PAGE: '+str(page_num))
     if len(pages)>0:
         pages = URL_PREFIX+pages[0]['href']
+    print (pages)
+    return pages
+
+def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
+    for tag_type,tag in TAGS:
+        links_page = html_soup.find_all(tag_type, class_ = tag) 
+        if len(links_page)==0:
+            continue
+        for each in links_page:
+                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
+                print ("DATE")
+                print (date)
+                if date is not None:
+                    date = date.text.strip()
+                    date = datetime.datetime.strptime(date,DATE_FORM).date()
+                    last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
+                    if date>=last_date:
+                        links.append(each)
+                    elif SORTED_SITE:
+                        pages=''
+                        break
+                else:
+                    links.append(each)
+    return links, pages
+
+
+def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
+    for each in links:
+        anchor_tags = each.find_all('a',href=True)
+        for link in anchor_tags:
+            pdf_url= link['href']
+            if pdf_url[:prefix_length] != URL_PREFIX:
+                pdf_url = URL_PREFIX+str(pdf_url)
+            if pdf_url not in links_visited:
+                links_visited.append(pdf_url)
+                if 'pdf' in pdf_url:
+                    pdf_links.append(pdf_url)
+                elif 'xlsx' in pdf_url:
+                    xlsx_links.append(pdf_url)
+                else:
+                    all_links.append(pdf_url)
+    if 'pdf' in current:
+        pdf_links.append(current)
+    elif 'xlsx' in current:
+        xlsx_links.append(current)
+    all_links.remove(current)
+    links_visited.append(current)
+    return pdf_links, xlsx_links, links_visited, all_links
+
+page_num = 1
+while all_links:
+    pages = get_next_page(all_links, NEXT_TEXT, URL_PREFIX)
+    
     while all_links:
         current = all_links[0]
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
-        links = []
-        for tag_type,tag in TAGS:
-            links_page = html_soup.find_all(tag_type, class_ = tag)     
-            if len(links_page)==0:
-                continue
-            for each in links_page:
-                articles = each.find_all('div',class_ = 'views-row')
-                for site in articles:
-                    date = site.find(DATE_TAG[0],class_ = DATE_TAG[1])
-                    if date is not None and 'view' not in date.text:
-                        date = date.text.strip()
-                        date = datetime.datetime.strptime(date,DATE_FORM).date()
-                        last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                        if date>=last_date:
-                            links.append(site)
-                        elif SORTED_SITE:
-                            pages=''
-                            break
-                    else:
-                        links.append(site)
-        for each in links:
-            article_links= each.find_all('a',href=True)
-            for url in article_links:
-                pdf_url = url['href']
-                if pdf_url[:prefix_length] != URL_PREFIX:
-                    pdf_url = URL_PREFIX+str(pdf_url)
-                if pdf_url not in links_visited:
-                    links_visited.append(pdf_url)
-                    if 'pdf' in pdf_url:
-                        pdf_links.append(pdf_url)
-                    elif 'xlsx' in pdf_url:
-                        xlsx_links.append(pdf_url)
-                    else:
-                        all_links.append(pdf_url)
-        if 'pdf' in current:
-            pdf_links.append(current)
-        elif 'xlsx' in current:
-            xlsx_links.append(current)
-        all_links.remove(current)
-        links_visited.append(current)
+        
+        links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, pages)
+        print (links)
+        
+        pdf_links, xlsx_links, links_visited, all_links = scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
+
     if len(pages)>0:
         all_links.append(pages)
         page_num+=1
