@@ -5,11 +5,11 @@ import datetime
 import re
 
 NEXT_TEXT = 'More'
-URL = 'https://www.gogla.org/publications'
-TAGS = [('div', 'ds-1col node node-resource node-teaser view-mode-teaser clearfix')]
+URL = 'http://energyaccess.org/resources/publications/'
+TAGS = [('div', 'list-content items-list')]
 LAST_SCRAPE_DATE = 'Dec 31, 2017'
-SORTED_SITE = False
-DATE_TAG = ('div', 'field field-name-post-date field-type-ds field-label-hidden')
+SORTED_SITE = True
+DATE_TAG = ('div', 'list-content items-list')
 DATE_FORM = '%b %d, %Y'
 
 all_links = [URL]
@@ -39,7 +39,7 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
         if len(links_page) == 0:
             continue
         for each in links_page:
-            date = each.find(DATE_TAG[0], class_=DATE_TAG[1])
+            '''date = each.find(DATE_TAG[0], class_=DATE_TAG[1])
             print("DATE")
             print(date)
             if date is not None:
@@ -52,7 +52,8 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
                     pages = ''
                     break
             else:
-                links.append(each)
+                links.append(each)'''
+            links.append(each)
     return links, pages
 
 
