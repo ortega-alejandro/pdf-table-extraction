@@ -1,45 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 12 14:20:47 2018
+Created on Wed Jul 18 15:47:11 2018
 
 @author: brookeerickson
 """
-
 from bs4 import BeautifulSoup
 from requests import get
 import urllib.request
 import datetime
 import re
 
+
 NEXT_TEXT = 'next ›'
-URL = 'https://africaopendata.org/dataset'
-TAGS = [('h5','dataset-heading'),('ul','resource-list'),('div','actions')]
-LAST_SCRAPE_DATE = 'May 20, 2018'
-SORTED_SITE = True
-DATE_TAG = ('div','dataset-date')
-DATE_FORM = '%B %d, %Y'
-
-
-'''NEXT_TEXT = 'next ›'
 URL = 'https://www.wri.org/our-work/project/energy-access/publications'
 TAGS = [('h2','article-title--large'),('li','download-item')]
 DATE_TAG = ('span','byline-date')
 DATE_FORM = '%B %Y'
 LAST_SCRAPE_DATE = 'December 2016'
-SORTED_SITE = True'''
-
-
-'''#NEXT_TEXT = ['Latest','View more','>>']
-NEXT_TEXT = 'next pull-right'
-URL = 'https://openknowledge.worldbank.org/recent-submissions'
-#TAGS = [('div','content date-info'),('div','bitstream-link-wrapper')]
-TAGS= [('div','content author-info'),('div','bitstream-link-wrapper')]
-DATE_TAG = TAGS[0]
-#DATE_FORM = '%B %d, %Y'
-DATE_FORM = '(%Y-%m)'
-LAST_SCRAPE_DATE = '(2018-01)'
-SORTED_SITE = True'''
+SORTED_SITE = True
 
 
 all_links = [URL]
@@ -60,9 +39,7 @@ while all_links:
     pages = html_soup.find_all('a', text = NEXT_TEXT)
     print ('PAGE: '+str(page_num))
     if len(pages)>0:
-        #pages = pages[0].find('a',href=True)
         pages = URL_PREFIX+pages[0]['href']
-        #pages = URL_PREFIX+pages['href']
     while all_links:
         current = all_links[0]
         response = get(current)
@@ -73,13 +50,10 @@ while all_links:
             if len(links_page)==0:
                 continue
             for each in links_page:
-                date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])      ####### OPENAFRICA ######
-                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])               ####### WRI #######
-                print ("DATE")
+                date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])
                 print (date)
-                if date is not None and 'view' not in date.text:
-                    date = date.text.split('|')[0][8:].strip()       ####### OPENAFRICA #######
-                    ######date = date.text.strip()                  ########### WRI,GOGLA #########
+                if date is not None:
+                    date = date.text.strip()                
                     date = datetime.datetime.strptime(date,DATE_FORM).date()
                     last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
                     if date>=last_date:
@@ -89,13 +63,10 @@ while all_links:
                         break
                 else:
                     links.append(each)
-        print (links)
         for each in links:
             pdf_ = each.find_all('a',href=True)
             for link in pdf_:
                 pdf_url= link['href']
-                if 'metadata' in pdf_url:
-                    continue
                 if pdf_url[:prefix_length] != URL_PREFIX:
                     pdf_url = URL_PREFIX+str(pdf_url)
                 if pdf_url not in links_visited:

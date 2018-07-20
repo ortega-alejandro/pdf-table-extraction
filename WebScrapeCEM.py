@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 18 15:47:11 2018
+Created on Wed Jul 18 15:14:26 2018
 
 @author: brookeerickson
 """
+
 from bs4 import BeautifulSoup
 from requests import get
 import urllib.request
@@ -12,13 +13,14 @@ import datetime
 import re
 
 
-NEXT_TEXT = 'next ›'
-URL = 'https://www.wri.org/our-work/project/energy-access/publications'
-TAGS = [('h2','article-title--large'),('li','download-item')]
-DATE_TAG = ('span','byline-date')
-DATE_FORM = '%B %Y'
-LAST_SCRAPE_DATE = 'December 2016'
+
+NEXT_TEXT = ''
+URL = 'https://www.ruralelec.org/publications'
+TAGS = [('div','col-xs-6 col-sm-3'),('span', 'file')]
+LAST_SCRAPE_DATE = ''
 SORTED_SITE = True
+DATE_TAG = []
+DATE_FORM = ''
 
 
 all_links = [URL]
@@ -38,6 +40,7 @@ def get_next_page(all_links, NEXT_TEXT, URL_PREFIX):
     print ('PAGE: '+str(page_num))
     if len(pages)>0:
         pages = URL_PREFIX+pages[0]['href']
+    print (pages)
     return pages
 
 def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
@@ -46,21 +49,23 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
         if len(links_page)==0:
             continue
         for each in links_page:
-            date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])     ####### WRI
-            print ("DATE")
-            print (date)
-            if date is not None:
-                date = date.text.strip()
-                date = datetime.datetime.strptime(date,DATE_FORM).date()
-                last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                if date>=last_date:
+            if len(DATE_TAG)>0:
+                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
+                print ("DATE")
+                print (date)
+                if date is not None:
+                    date = date.text.strip()
+                    date = datetime.datetime.strptime(date,DATE_FORM).date()
+                    last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
+                    if date>=last_date:
+                        links.append(each)
+                    elif SORTED_SITE:
+                        pages=''
+                        break
+                else:
                     links.append(each)
-                elif SORTED_SITE:
-                    pages=''
-                    break
-            else:
-                links.append(each)
     return links, pages
+
 
 def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
     for each in links:
@@ -85,8 +90,6 @@ def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_lin
     links_visited.append(current)
     return pdf_links, xlsx_links, links_visited, all_links
 
-
-
 page_num = 1
 while all_links:
     pages = get_next_page(all_links, NEXT_TEXT, URL_PREFIX)
@@ -97,7 +100,8 @@ while all_links:
         html_soup = BeautifulSoup(response.text, 'lxml')
         
         links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, pages)
-
+        print (links)
+        
         pdf_links, xlsx_links, links_visited, all_links = scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
 
     if len(pages)>0:

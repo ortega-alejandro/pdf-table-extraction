@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 18 15:47:11 2018
+Created on Thu Jul 12 14:20:47 2018
 
 @author: brookeerickson
 """
+
 from bs4 import BeautifulSoup
 from requests import get
 import urllib.request
 import datetime
 import re
 
-
-NEXT_TEXT = 'next ›'
-URL = 'https://www.wri.org/our-work/project/energy-access/publications'
-TAGS = [('h2','article-title--large'),('li','download-item')]
-DATE_TAG = ('span','byline-date')
-DATE_FORM = '%B %Y'
-LAST_SCRAPE_DATE = 'December 2016'
+NEXT_TEXT = ''
+URL = 'http://www.gnesd.org/PUBLICATIONS/Energy-Access-Theme'
+TAGS = [('div','contentmain')]
+DATE_TAG = []
+DATE_FORM = ''
 SORTED_SITE = True
+LAST_SCRAPE_DATE = ''
 
 
 all_links = [URL]
@@ -29,39 +29,31 @@ URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
 prefix_length = len(URL_PREFIX)
 
 
-def get_next_page(all_links, NEXT_TEXT, URL_PREFIX):
-    main_url = all_links[0]
-    print (main_url)
-    response = get(main_url)
-    html_soup = BeautifulSoup(response.text, 'lxml')
-    pages = html_soup.find_all('a', text = NEXT_TEXT)
-    print ('PAGE: '+str(page_num))
-    if len(pages)>0:
-        pages = URL_PREFIX+pages[0]['href']
-    return pages
-
-def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
+def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup):
     for tag_type,tag in TAGS:
         links_page = html_soup.find_all(tag_type, class_ = tag) 
         if len(links_page)==0:
             continue
         for each in links_page:
-            date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])     ####### WRI
-            print ("DATE")
-            print (date)
-            if date is not None:
-                date = date.text.strip()
-                date = datetime.datetime.strptime(date,DATE_FORM).date()
-                last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                if date>=last_date:
+            if len(DATE_TAG)>0:
+                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
+                print ("DATE")
+                print (date)
+                if date is not None:
+                    date = date.text.strip()
+                    date = datetime.datetime.strptime(date,DATE_FORM).date()
+                    last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
+                    if date>=last_date:
+                        links.append(each)
+                    elif SORTED_SITE:
+                        break
+                else:
                     links.append(each)
-                elif SORTED_SITE:
-                    pages=''
-                    break
             else:
                 links.append(each)
-    return links, pages
-
+    return links
+                    
+                    
 def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
     for each in links:
         anchor_tags = each.find_all('a',href=True)
@@ -85,24 +77,15 @@ def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_lin
     links_visited.append(current)
     return pdf_links, xlsx_links, links_visited, all_links
 
-
-
-page_num = 1
+ 
 while all_links:
-    pages = get_next_page(all_links, NEXT_TEXT, URL_PREFIX)
+    current = all_links[0]
+    response = get(current)
+    html_soup = BeautifulSoup(response.text, 'lxml')
     
-    while all_links:
-        current = all_links[0]
-        response = get(current)
-        html_soup = BeautifulSoup(response.text, 'lxml')
-        
-        links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, pages)
-
-        pdf_links, xlsx_links, links_visited, all_links = scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
-
-    if len(pages)>0:
-        all_links.append(pages)
-        page_num+=1
+    links = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup)
+    
+    pdf_links, xlsx_links, links_visited, all_links = scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
 
     
 print ('all_links')

@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 18 15:47:11 2018
+Created on Thu Jul 12 14:20:47 2018
 
 @author: brookeerickson
 """
+
 from bs4 import BeautifulSoup
 from requests import get
 import urllib.request
 import datetime
 import re
 
-
 NEXT_TEXT = 'next ›'
-URL = 'https://www.wri.org/our-work/project/energy-access/publications'
-TAGS = [('h2','article-title--large'),('li','download-item')]
-DATE_TAG = ('span','byline-date')
-DATE_FORM = '%B %Y'
-LAST_SCRAPE_DATE = 'December 2016'
+URL = 'https://africaopendata.org/dataset'
+TAGS = [('h5','dataset-heading'),('ul','resource-list'),('div','actions')]
+LAST_SCRAPE_DATE = 'May 20, 2018'
 SORTED_SITE = True
+DATE_TAG = ('div','dataset-date')
+DATE_FORM = '%B %d, %Y'
 
 
 all_links = [URL]
@@ -46,11 +46,11 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
         if len(links_page)==0:
             continue
         for each in links_page:
-            date = each.parent.find(DATE_TAG[0],class_ = DATE_TAG[1])     ####### WRI
+            date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
             print ("DATE")
             print (date)
             if date is not None:
-                date = date.text.strip()
+                date = date.text.split('|')[0][8:].strip()       ####### OPENAFRICA #######
                 date = datetime.datetime.strptime(date,DATE_FORM).date()
                 last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
                 if date>=last_date:
@@ -84,7 +84,6 @@ def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_lin
     all_links.remove(current)
     links_visited.append(current)
     return pdf_links, xlsx_links, links_visited, all_links
-
 
 
 page_num = 1
