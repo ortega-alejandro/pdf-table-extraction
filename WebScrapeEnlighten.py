@@ -5,8 +5,8 @@ import datetime
 import re
 
 NEXT_TEXT = 'More'
-URL = 'http://energyaccess.org/resources/publications/'
-TAGS = [('div', 'list-content items-list')]
+URL = 'https://united4efficiency.org/resources/publications/'
+TAGS = [('div', 'featured-img'), ('div', 'entry-content')]
 LAST_SCRAPE_DATE = 'Dec 31, 2017'
 SORTED_SITE = True
 DATE_TAG = ('div', 'list-content items-list')
@@ -59,7 +59,7 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
 
 def scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
     for each in links:
-        anchor_tags = each.find_all('a', href=True)
+        anchor_tags = each.parent.find_all('a', href=True)
         for link in anchor_tags:
             pdf_url = link['href']
             if pdf_url[:prefix_length] != URL_PREFIX:
