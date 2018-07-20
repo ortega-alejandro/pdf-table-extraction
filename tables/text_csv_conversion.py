@@ -31,8 +31,9 @@ def find_spaces(text,regex_space):
     text is the array representation of the table's text file
     regex_space is a regex for finding spaces
 
-    function that finds spaces in the table based on regular expression parameter, and appends the regular expression match object for each line into an
-    array. These objects contain character positions that can be used as coordinates to place commas
+    function that finds spaces in the table based on regular expression parameter, and appends the regular expression
+    match object for each line into an array. These objects contain character positions that can be used as coordinates
+    to place commas
 
     Return Values
     an array of arrays for regular expression match objects for each line
@@ -49,15 +50,14 @@ def find_spaces(text,regex_space):
     return data
 
 
-
-def get_columns(data):
+def get_columns(match_spaces):
     '''
     Parameters:
-    data is an array of regular expression match objects for whitespace returned by find_spaces()
+    match_spaces is an array of regular expression match objects for whitespace returned by find_spaces()
 
-    function that determines columns in the table by first setting the number of columns to the largest length of spaces.
-    Then it iterates through the text file and adds the starting coordinate of the whitespace if it matches the number of
-    columns
+    function that determines columns in the table by first setting the number of columns to the size of
+    match_spaces. Then it iterates through the text file and appends the starting coordinate of the whitespace  to the
+    output array if it matches the number of columns
 
     Return Values:
     columns, the number of columns
@@ -65,17 +65,17 @@ def get_columns(data):
     '''
 
     columns = 0
-    for each in data:
+    for each in match_spaces:
         if len(each) > columns and each[0][0] != 0:
             columns = len(each)
     if columns == 0:  # This is for the case that the table has white space to begin every row
-        for each in data:
+        for each in match_spaces:
             if len(each) > columns:
                 columns = len(each)
     max_column_arr = []
     for i in range(columns):
         max_column_arr.append(0)
-    for each in data:
+    for each in match_spaces:
         if len(each) == columns:
             for i in range(len(each)):
                 start, end = each[i]
@@ -314,7 +314,7 @@ def correct_encodings(line):
     return line
 
 
-def convert_all(src='output/txt/', dst='output/csv/', name='table', debug=False):
+def convert_all(src='../output/txt/', dst='../output/csv/', name='table', debug=False):
     files = os.listdir(src)
     k = 0
     for file in files:
