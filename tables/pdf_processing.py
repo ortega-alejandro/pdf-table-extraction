@@ -3,7 +3,7 @@ import subprocess
 from wand.image import Image
 
 
-def convert_pdf(src, dst='images/'):
+def convert_pdf(src, dst='../output/img/'):
     '''
     	Parameters:
     	src is a String denoting the location of the file,
