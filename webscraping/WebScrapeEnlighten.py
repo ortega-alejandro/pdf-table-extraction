@@ -7,10 +7,10 @@ import re
 NEXT_TEXT = 'More'
 URL = 'https://united4efficiency.org/resources/publications/'
 TAGS = [('div', 'featured-img'), ('div', 'entry-content')]
-LAST_SCRAPE_DATE = 'Dec 31, 2017'
+LAST_SCRAPE_DATE = ''
 SORTED_SITE = True
-DATE_TAG = ('div', 'list-content items-list')
-DATE_FORM = '%b %d, %Y'
+DATE_TAG = []
+DATE_FORM = ''
 
 all_links = [URL]
 links_visited = []
