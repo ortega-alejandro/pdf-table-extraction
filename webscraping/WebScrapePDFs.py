@@ -4,6 +4,7 @@ from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import BytesIO
+import re
 
 
 def pdf_from_url_to_txt(url):
@@ -30,13 +31,18 @@ def pdf_from_url_to_txt(url):
         interpreter.process_page(page)
     fp.close()
     device.close()
-    str = retstr.getvalue()
+    ret = retstr.getvalue()
     retstr.close()
-    return str
+    return str(ret)
 
 
 url = 'https://wriorg.s3.amazonaws.com/s3fs-public/can-renewable-energy-jobs-reduce-poverty-india.pdf'
 
 string = pdf_from_url_to_txt(url)
 
+print(string[16])
+
+string = re.sub(r"\\n", " ", string)
+
 print(string[:500])
+
