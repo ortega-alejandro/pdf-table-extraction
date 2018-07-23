@@ -50,14 +50,13 @@ def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
     print (pages)
     return pages
 
-def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
+def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links, html_soup, pages):
     for tag_type,tag in TAGS:
         links_page = html_soup.find_all(tag_type, class_ = tag) 
         if len(links_page)==0:
             continue
         for each in links_page:
             if len(DATE_TAG)>0:
-                print(DATE_TAG)
                 date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
                 print ("DATE")
                 print (date)
@@ -101,13 +100,13 @@ def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited
     return pdf_links, xlsx_links, links_visited, all_links
 
 
-def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links, pdf_links, xlsx_links, links_visited):
+def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited):
     while all_links:
         current = all_links[0]
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
     
-        links,pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, '')
+        links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, '')
     
         pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
         
@@ -125,7 +124,7 @@ def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links, pdf_li
     for i in (xlsx_links):
         print (i)
         
-def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links, pdf_links, xlsx_links, links_visited):
+def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited):
     page_num = 1
     while all_links:
         pages = get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX)
@@ -135,7 +134,7 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links, 
             response = get(current)
             html_soup = BeautifulSoup(response.text, 'lxml')
             
-            links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, pages)
+            links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, pages)
             print (links)
             
             pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
@@ -157,6 +156,7 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links, 
     print (len(xlsx_links))
     for i in (xlsx_links):
         print (i)
+        
         
         
 #################################################################################
@@ -214,21 +214,36 @@ TAGS = [('div', 'list-content items-list')]
 LAST_SCRAPE_DATE = ''
 SORTED_SITE = True
 DATE_TAG = []
-DATE_FORM = '''''
+DATE_FORM = '''
 
-URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes('ruralelec.txt')
+NEXT_TEXT = ' Next '
+URL = 'https://www.sun-connect-news.org/databases/documents/all/'
+TAGS = [('div','article articletype-2 topnews')]
+DATE_TAG = []
+DATE_FORM = ''
+SORTED_SITE = True
+LAST_SCRAPE_DATE = ''
 
-print(DATE_TAG)
+#FORBIDDEN??
+#NEXT_TEXT = 'More'
+#URL = 'https://united4efficiency.org/resources/publications/'
+#TAGS = [('div', 'featured-img'), ('div', 'entry-content')]
+#LAST_SCRAPE_DATE = ''
+#SORTED_SITE = True
+#DATE_TAG = []
+#DATE_FORM = ''
+
+
+
 
 URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
 prefix_length = len(URL_PREFIX)
     
 if NEXT_TEXT == '':
     print ("ONE PAGE")
-    one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
+    one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
 else:
-    print("MULTIPLE PAGES")
-    multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
-
-
-
+    print ("MULTIPLE PAGES")
+    multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
+        
+    
