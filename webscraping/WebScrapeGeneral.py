@@ -8,7 +8,6 @@ Created on Wed Jul 18 15:14:26 2018
 
 from bs4 import BeautifulSoup
 from requests import get
-import urllib.request
 import datetime
 import re
 
@@ -167,13 +166,30 @@ SORTED_SITE = True
 LAST_SCRAPE_DATE = '''''
 
 
-NEXT_TEXT = ''
+'''NEXT_TEXT = ''
 URL = 'http://www.gnesd.org/PUBLICATIONS/Energy-Access-Theme'
 TAGS = [('div','contentmain')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
+LAST_SCRAPE_DATE = '''
+
+'''NEXT_TEXT = 'More'
+URL = 'https://www.reeep.org/publications/'
+TAGS = [('div','view-content ui-accordion ui-widget ui-helper-reset ui-accordion-icons'),('h4','field-content list-view-heading'),('span','file')]
 LAST_SCRAPE_DATE = ''
+SORTED_SITE = True
+DATE_TAG = []
+DATE_FORM = '''
+
+NEXT_TEXT = 'More'
+URL = 'http://energyaccess.org/resources/publications/'
+TAGS = [('div', 'list-content items-list')]
+LAST_SCRAPE_DATE = ''
+SORTED_SITE = True
+DATE_TAG = []
+DATE_FORM = ''
+
 
 
 URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
