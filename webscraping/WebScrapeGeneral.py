@@ -12,6 +12,31 @@ import datetime
 import re
 
 
+def get_url_attributes(file):
+    lines = [line.rstrip('\n') for line in open(file)]
+    url = lines[1]
+    html_tags = get_tags(lines[2])
+    date_tags = get_tags(lines[4])[0]
+    if len(date_tags) == 1:
+        date_tags = []
+    sort = False
+    if lines[3] == '1':
+        sort = True
+    date_form = lines[5]
+    next_text = lines[1]
+    date = lines[6]
+    # last_scraped = datetime.datetime.strptime(date, date_form).date()
+
+    return url, html_tags, sort, date_tags, date_form, next_text, date
+
+
+def get_tags(line):
+    tags = line.split('|')
+    final_tags = []
+    for tag in tags:
+        final_tags.append(tag.split(','))
+    return final_tags
+
 
 def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
     main_url = all_links[0]
@@ -32,6 +57,7 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, links, html_soup, pages):
             continue
         for each in links_page:
             if len(DATE_TAG)>0:
+                print(DATE_TAG)
                 date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
                 print ("DATE")
                 print (date)
@@ -182,15 +208,17 @@ SORTED_SITE = True
 DATE_TAG = []
 DATE_FORM = '''
 
-NEXT_TEXT = 'More'
+'''NEXT_TEXT = 'More'
 URL = 'http://energyaccess.org/resources/publications/'
 TAGS = [('div', 'list-content items-list')]
 LAST_SCRAPE_DATE = ''
 SORTED_SITE = True
 DATE_TAG = []
-DATE_FORM = ''
+DATE_FORM = '''''
 
+URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes('ruralelec.txt')
 
+print(DATE_TAG)
 
 URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
 prefix_length = len(URL_PREFIX)
@@ -199,5 +227,8 @@ if NEXT_TEXT == '':
     print ("ONE PAGE")
     one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
 else:
-    print ("MULTIPLE PAGES")
+    print("MULTIPLE PAGES")
     multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
+
+
+
