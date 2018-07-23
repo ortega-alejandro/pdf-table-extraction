@@ -84,13 +84,13 @@ def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited
                 pdf_url = URL_PREFIX+str(pdf_url)
             if pdf_url not in links_visited:
                 links_visited.append(pdf_url)
-                if 'pdf' in pdf_url:
+                if 'file' in pdf_url:           #### E4I
                     pdf_links.append(pdf_url)
                 elif 'xlsx' in pdf_url:
                     xlsx_links.append(pdf_url)
                 else:
                     all_links.append(pdf_url)
-    if 'pdf' in current:
+    if 'file' in current:                       #### E4I
         pdf_links.append(current)
     elif 'xlsx' in current:
         xlsx_links.append(current)
@@ -159,86 +159,13 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE
         
         
 #################################################################################
-'''NEXT_TEXT = 'More'
-URL = 'https://www.gogla.org/publications'
-TAGS = [('div','ds-1col node node-resource node-teaser view-mode-teaser clearfix')]
-LAST_SCRAPE_DATE = 'Dec 31, 2017'
-SORTED_SITE = False
-DATE_TAG = ('div','field field-name-post-date field-type-ds field-label-hidden')
-DATE_FORM = '%b %d, %Y'''
-
-'''NEXT_TEXT = 'Next »'
-URL = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
-TAGS = [('div','library-card-image'),('div','small-12 medium-8 columns'),('div','docDownloads')]
-LAST_SCRAPE_DATE = 'January 1, 2017'
-SORTED_SITE = True
-DATE_TAG = ('div','library-card-date')
-DATE_FORM = '%B %d, %Y'''
-
-'''NEXT_TEXT = ''
-URL = 'http://www.cleanenergyministerial.org/publication-cem'
-TAGS = [('div','publication-latest-cem')]
-LAST_SCRAPE_DATE = '2018-05-30'
-SORTED_SITE = True
-DATE_TAG = ('div','views-field views-field-field-publication-date')
-DATE_FORM = '%Y-%m-%d'''
-
-'''NEXT_TEXT = ''
-URL = 'https://www.ruralelec.org/publications'
-TAGS = [('div','col-xs-6 col-sm-3'),('span', 'file')]
+NEXT_TEXT = ''
+URL = 'https://www.energy4impact.org/publications'
+TAGS = [('div', 'o-btn btn--style-2')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
-LAST_SCRAPE_DATE = '''''
-
-
-'''NEXT_TEXT = ''
-URL = 'http://www.gnesd.org/PUBLICATIONS/Energy-Access-Theme'
-TAGS = [('div','contentmain')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
-
-'''NEXT_TEXT = 'More'
-URL = 'https://www.reeep.org/publications/'
-TAGS = [('div','view-content ui-accordion ui-widget ui-helper-reset ui-accordion-icons'),('h4','field-content list-view-heading'),('span','file')]
 LAST_SCRAPE_DATE = ''
-SORTED_SITE = True
-DATE_TAG = []
-DATE_FORM = '''
-
-'''NEXT_TEXT = 'More'
-URL = 'http://energyaccess.org/resources/publications/'
-TAGS = [('div', 'list-content items-list')]
-LAST_SCRAPE_DATE = ''
-SORTED_SITE = True
-DATE_TAG = []
-DATE_FORM = '''
-
-'''NEXT_TEXT = ' Next '
-URL = 'https://www.sun-connect-news.org/databases/documents/all/'
-TAGS = [('div','article articletype-2 topnews')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
-
-'''NEXT_TEXT = '»'
-URL = 'http://www.wame2015.org/database'
-TAGS = [('div', 'wame-box'), ('div','media')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
-
-'''NEXT_TEXT = ''
-URL = 'http://wbcsdpublications.org/publications/'
-TAGS = [('div', 'et_pb_portfolio_items'), ('h2','et_pb_module_header'),('div','et_pb_button_wrapper')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
 
 
 

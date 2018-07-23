@@ -12,42 +12,18 @@ import datetime
 import re
 
 
-def get_url_attributes(file):
-    lines = [line.rstrip('\n') for line in open(file)]
-    url = lines[1]
-    html_tags = get_tags(lines[2])
-    date_tags = get_tags(lines[4])[0]
-    if len(date_tags) == 1:
-        date_tags = []
-    sort = False
-    if lines[3] == '1':
-        sort = True
-    date_form = lines[5]
-    next_text = lines[1]
-    date = lines[6]
-    # last_scraped = datetime.datetime.strptime(date, date_form).date()
-
-    return url, html_tags, sort, date_tags, date_form, next_text, date
-
-
-def get_tags(line):
-    tags = line.split('|')
-    final_tags = []
-    for tag in tags:
-        final_tags.append(tag.split(','))
-    return final_tags
-
-
 def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
     main_url = all_links[0]
+    print (main_url)
     response = get(main_url)
     html_soup = BeautifulSoup(response.text, 'lxml')
     pages = html_soup.find_all('a', text = NEXT_TEXT)
     print ('PAGE: '+str(page_num))
-    print (main_url)
     if len(pages)>0:
         pages = URL_PREFIX+pages[0]['href']
+    print (pages)
     return pages
+
 
 def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links, html_soup, pages):
     for tag_type,tag in TAGS:
@@ -155,12 +131,9 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE
     for i in (xlsx_links):
         print (i)
         
-
-        
         
 #################################################################################
-'''NEXT_TEXT = 'More'
-URL = 'https://www.gogla.org/publications'
+'''URL = 'https://www.gogla.org/publications'
 TAGS = [('div','ds-1col node node-resource node-teaser view-mode-teaser clearfix')]
 LAST_SCRAPE_DATE = 'Dec 31, 2017'
 SORTED_SITE = False
@@ -224,30 +197,29 @@ DATE_FORM = ''
 SORTED_SITE = True
 LAST_SCRAPE_DATE = '''
 
-'''NEXT_TEXT = '»'
+NEXT_TEXT = '»'
 URL = 'http://www.wame2015.org/database'
 TAGS = [('div', 'wame-box'), ('div','media')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
-
-'''NEXT_TEXT = ''
-URL = 'http://wbcsdpublications.org/publications/'
-TAGS = [('div', 'et_pb_portfolio_items'), ('h2','et_pb_module_header'),('div','et_pb_button_wrapper')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
+LAST_SCRAPE_DATE = ''
 
 
+#FORBIDDEN??
+#NEXT_TEXT = 'More'
+#URL = 'https://united4efficiency.org/resources/publications/'
+#TAGS = [('div', 'featured-img'), ('div', 'entry-content')]
+#LAST_SCRAPE_DATE = ''
+#SORTED_SITE = True
+#DATE_TAG = []
+#DATE_FORM = ''
 
 
-#TEXT_FILE = 'ruralelec.txt'
-
-#URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes(TEXT_FILE)
+#URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes('ruralelec.txt')
 
 #print(DATE_TAG)
+
 
 URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
 prefix_length = len(URL_PREFIX)
@@ -258,6 +230,3 @@ if NEXT_TEXT == '':
 else:
     print ("MULTIPLE PAGES")
     multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
-
-
-
