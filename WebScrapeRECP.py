@@ -34,7 +34,6 @@ def tags(current, links, html_soup):
             continue
         for each in links_page:
             links.append(each)
-        print (links)
         if tag == "container":
             scrape_page_pdf(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
         else:
@@ -88,10 +87,6 @@ def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited
         all_links.remove(current)
     links_visited.append(current)
     return pdf_links, xlsx_links, links_visited, all_links
-
-#page_num = 1
-#while all_links:
-    #pages = get_next_page(all_links, NEXT_TEXT, URL_PREFIX)
     
 while all_links:
     current = all_links[0]
@@ -99,12 +94,7 @@ while all_links:
     html_soup = BeautifulSoup(response.text, 'lxml')
     
     pdf_links, xlsx_links, links_visited, all_links = tags(current, [], html_soup)
-    
-    #pdf_links, xlsx_links, links_visited, all_links = scrape_page(links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
 
-    #if len(pages)>0:
-    #    all_links.append(pages)
-    #    page_num+=1
 
     
 print ('all_links')
