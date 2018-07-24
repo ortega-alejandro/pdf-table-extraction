@@ -24,7 +24,7 @@ def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
     return pages
 
 
-def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links, html_soup, pages, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
+def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links, html_soup, pages):
     for tag_type,tag in TAGS:
         links_page = html_soup.find_all(tag_type, class_ = tag)
         if len(links_page)==0:
@@ -47,11 +47,10 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links
                     links.append(each)
             else:
                 links.append(each)
-        pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links, tag, TAGS) ####RECP
-    return pdf_links, xlsx_links, links_visited, all_links
+    return links,pages
 
 
-def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links, tag, TAGS):  ##tag, TAGS parameters RECP
+def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
     for each in links:
         anchor_tags = each.find_all('a',href=True)
         for link in anchor_tags:
@@ -60,12 +59,18 @@ def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited
                 pdf_url = URL_PREFIX+str(pdf_url)
             if pdf_url not in links_visited:
                 links_visited.append(pdf_url)
+                if 'Database' in current: 
+                    if '#' not in pdf_url:#### ENERGYPEDIA
+                        all_links.append(pdf_url)
                 if 'pdf' in pdf_url:
                     pdf_links.append(pdf_url)
                 elif 'xlsx' in pdf_url:
                     xlsx_links.append(pdf_url)
-                if tag != TAGS[-1][1]:                       #### ENERGYPEDIA
-                    all_links.append(pdf_url)               #### ENERGYPEDIA
+                #if tag != TAGS[-1][1]:                       #### ENERGYPEDIA
+                #    all_links.append(pdf_url)               #### ENERGYPEDIA
+                #if tag != TAGS[-1][1]:
+                #    xlsx_links.append(tag)
+                #    xlsx_links.append(pdf_url)
     if 'pdf' in current:
         pdf_links.append(current)
     elif 'xlsx' in current:
@@ -73,6 +78,8 @@ def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited
     if current in all_links:
         all_links.remove(current)
     links_visited.append(current)
+    print ('PDF HERE')
+    print (all_links)
     return pdf_links, xlsx_links, links_visited, all_links
 
 def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited):
@@ -81,8 +88,9 @@ def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE,
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
     
-        pdf_links, xlsx_links, links_visited, all_links = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, '', current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
-            
+        links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, '')
+        pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
+                
     print ('all_links')
     print (all_links)
     print ('links_visited')
@@ -107,8 +115,9 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE
             response = get(current)
             html_soup = BeautifulSoup(response.text, 'lxml')
 
-            pdf_links, xlsx_links, links_visited, all_links = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, pages, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
-
+            links,pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, pages)
+            pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
+            
         if len(pages)>0:
             all_links.append(pages)
             page_num+=1
@@ -132,7 +141,7 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE
 
 NEXT_TEXT = ''
 URL = 'https://energypedia.info/wiki/Category:Pub_Database'
-TAGS = [('table','sortable jquery-tablesorter'),('div','mw-content-ltr')]
+TAGS = [('div','mw-content-ltr')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
