@@ -11,6 +11,7 @@ from requests import get
 import datetime
 import re
 
+
 def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
     main_url = all_links[0]
     print (main_url)
