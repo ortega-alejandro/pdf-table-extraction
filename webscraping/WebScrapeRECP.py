@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 18 15:14:26 2018
-
-@author: brookeerickson
-"""
-
 from bs4 import BeautifulSoup
 from requests import get
 import re
