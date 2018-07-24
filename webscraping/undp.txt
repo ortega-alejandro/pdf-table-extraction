@@ -1,7 +1,0 @@
-Next »
-http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access
-div,library-card-image|div,small-12 medium-8 columns|div,docDownloads
-1
-div,library-card-date
-%B %d, %Y
-January 1, 2017

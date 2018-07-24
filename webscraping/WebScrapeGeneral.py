@@ -57,14 +57,14 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links
             continue
         for each in links_page:
             if len(DATE_TAG)>0:
-                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
-                print ("DATE")
-                print (date)
+                date = each.find(DATE_TAG[0], class_=DATE_TAG[1])
+                print("DATE")
+                print(date)
                 if date is not None:
                     date = date.text.strip()
                     date = datetime.datetime.strptime(date,DATE_FORM).date()
                     last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                    if date>=last_date:
+                    if date >= last_date:
                         links.append(each)
                     elif SORTED_SITE:
                         pages=''
@@ -156,9 +156,8 @@ def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE
     print (len(xlsx_links))
     for i in (xlsx_links):
         print (i)
-        
 
-        
+
         
 #################################################################################
 '''URL = 'https://www.gogla.org/publications'
@@ -234,13 +233,13 @@ LAST_SCRAPE_DATE = ''
 #DATE_TAG = []
 #DATE_FORM = ''
 
-TEXT_FILE = 'ruralelec.txt'
+TEXT_FILE = 'text/ren21.txt'
 
 URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes(TEXT_FILE)
 
 print(DATE_TAG)
 
-URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
+URL_PREFIX = re.search('.*org/|.*com/|.*edu/|.*net/', URL).group(0)
 prefix_length = len(URL_PREFIX)
     
 if NEXT_TEXT == '':
