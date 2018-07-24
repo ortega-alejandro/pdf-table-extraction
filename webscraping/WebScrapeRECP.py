@@ -1,154 +1,110 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 18 15:14:26 2018
-
-@author: brookeerickson
-"""
-
 from bs4 import BeautifulSoup
 from requests import get
-import datetime
 import re
 
 
-def get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX):
-    main_url = all_links[0]
-    print (main_url)
-    response = get(main_url)
-    html_soup = BeautifulSoup(response.text, 'lxml')
-    pages = html_soup.find_all('a', text = NEXT_TEXT)
-    print ('PAGE: '+str(page_num))
-    if len(pages)>0:
-        pages = URL_PREFIX+pages[0]['href']
-    print (pages)
-    return pages
-
-
-def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links, html_soup, pages, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
+'''FUNCTION: GO THROUGH LIST OF TAGS AND ADD ALL LINKS TO A LIST
+        NOTE: THIS FUNCTION CALLS SCRAPE_PAGE FOR EVERY TAG
+        OUTPUT: LIST OF HTML INFO ASSOCIATED WITH EACH TAG'''
+def tags_by_date(TAGS, links, html_soup, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links):
     for tag_type,tag in TAGS:
+        #find all occurances of each html tag
         links_page = html_soup.find_all(tag_type, class_ = tag)
         if len(links_page)==0:
+            #if tag did not appear, continue to next tag
             continue
         for each in links_page:
-            if len(DATE_TAG)>0:
-                date = each.find(DATE_TAG[0],class_ = DATE_TAG[1])
-                print ("DATE")
-                print (date)
-                if date is not None:
-                    date = date.text.strip()
-                    date = datetime.datetime.strptime(date,DATE_FORM).date()
-                    last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                    if date>=last_date:
-                        links.append(each)
-                    elif SORTED_SITE:
-                        pages=''
-                        break
-                else:
-                    links.append(each)
-            else:
-                links.append(each)
+            links.append(each)
+        #MUST CALL SCRAPE_PAGE FOR EACH TAG SINCE THE TAG IS RELEVANT TO WHICH LINKS ARE PDFS
         pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links, tag, TAGS) ####RECP
     return pdf_links, xlsx_links, links_visited, all_links
 
 
+'''FUNCTION: FIND ALL ANCHOR TAGS IN EACH OBJECT OF LINKS
+        NOTE: ONLY ADD LINKS TO ALL_LINKS UNDER CERTAIN CONDITIONS
+        INPUT: LINKS, TAG, TAGS
+        OUTPUT: PDF_LINKS, XLSX_LINKS, LINKS_VISITED, ALL_LINKS'''
 def scrape_page(current, links, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links, tag, TAGS):  ##tag, TAGS parameters RECP
     for each in links:
+        #find all anchor tags and url's
         anchor_tags = each.find_all('a',href=True)
         for link in anchor_tags:
             pdf_url= link['href']
             if pdf_url[:4] != 'http':
+                #append URL_PREFIX if the link does not begin with http already
                 pdf_url = URL_PREFIX+str(pdf_url)
             if pdf_url not in links_visited:
+                #only use link if it has not already been visited
                 links_visited.append(pdf_url)
                 if 'pdf' in pdf_url:
                     pdf_links.append(pdf_url)
                 elif 'xlsx' in pdf_url:
                     xlsx_links.append(pdf_url)
-                if tag == TAGS[0][1]:                       ####RECP
-                    all_links.append(pdf_url)               ####RECP
-                elif tag == TAGS[1][1]:                     ####RECP
-                    if 'link' in pdf_url:                   ####RECP
-                        all_links.append(pdf_url)           ####RECP
+                if tag == TAGS[0][1]:
+                    #ADD TO ALL_LINKS
+                    #if you are on the main page
+                    all_links.append(pdf_url)
+                elif tag == TAGS[1][1]:
+                    #ADD TO ALL_LINKS
+                    #if you are on the second page of the depth-first search and the word 'link' is in the url
+                    if 'link' in pdf_url:
+                        all_links.append(pdf_url)
     if 'pdf' in current:
         pdf_links.append(current)
     elif 'xlsx' in current:
         xlsx_links.append(current)
     if current in all_links:
         all_links.remove(current)
+    #add current link to links_visited
     links_visited.append(current)
     return pdf_links, xlsx_links, links_visited, all_links
 
-def one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited):
+
+'''FUNCTION: COMBINE ALL ABOVE FUNCTIONS IF WEBSITE ONLY HAS ONE PAGE
+        OUTPUT: list of pdf_links and xlsx_links'''
+def one_page(URL_PREFIX, TAGS, all_links, pdf_links, xlsx_links, links_visited, PRINT_MODE):
+    #continue to repeat process while there are more links in the list all_links
     while all_links:
         current = all_links[0]
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
-    
-        pdf_links, xlsx_links, links_visited, all_links = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, '', current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
+
+        pdf_links, xlsx_links, links_visited, all_links = tags_by_date(TAGS, [], html_soup, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
             
-    print ('all_links')
-    print (all_links)
-    print ('links_visited')
-    print (len(links_visited))
-    print (links_visited)
-    print ('pdf_links')
-    print (len(pdf_links))
-    for i in pdf_links:
-        print (i)
-    print ('xlsx_links')
-    print (len(xlsx_links))
-    for i in (xlsx_links):
-        print (i)
+    if PRINT_MODE:     
+        print ('all_links')
+        print (all_links)
+        print ('links_visited')
+        print (len(links_visited))
+        print (links_visited)
+        print ('pdf_links')
+        print (len(pdf_links))
+        for i in pdf_links:
+            print (i)
+        print ('xlsx_links')
+        print (len(xlsx_links))
+        for i in (xlsx_links):
+            print (i)
         
-def multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited):
-    page_num = 1
-    while all_links:
-        pages = get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX)
-        
-        while all_links:
-            current = all_links[0]
-            response = get(current)
-            html_soup = BeautifulSoup(response.text, 'lxml')
+    return pdf_links, xlsx_links
 
-            pdf_links, xlsx_links, links_visited, all_links = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, pages, current, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
 
-        if len(pages)>0:
-            all_links.append(pages)
-            page_num+=1
-    
-    print ('all_links')
-    print (all_links)
-    print ('links_visited')
-    print (len(links_visited))
-    print (links_visited)
-    print ('pdf_links')
-    print (len(pdf_links))
-    for i in pdf_links:
-        print (i)
-    print ('xlsx_links')
-    print (len(xlsx_links))
-    for i in (xlsx_links):
-        print (i)
+'''FUNCTION: SCRAPE THE WEBSITE'''
+def scrape_website(URL, TAGS, pdf_links = [], xlsx_links = [], links_visited = [], PRINT_MODE=False):
+
+    URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
+    prefix_length = len(URL_PREFIX)
+    all_links = [URL]
+
+    pdf_links, xlsx_links = one_page(prefix_length, URL_PREFIX, TAGS, all_links, pdf_links, xlsx_links, links_visited, PRINT_MODE)
+       
+    return pdf_links, xlsx_links
         
               
 #################################################################################
     
 
-NEXT_TEXT = ''
 URL = 'https://www.africa-eu-renewables.org/market-information/'
 TAGS = [('div','box reveal'),('div','nav-wrap'),('div','container')]
-DATE_TAG = []
-DATE_FORM = ''
-SORTED_SITE = False
-LAST_SCRAPE_DATE = ''
     
-URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
-prefix_length = len(URL_PREFIX)
-    
-if NEXT_TEXT == '':
-    print ("ONE PAGE")
-    one_page(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
-else:
-    print ("MULTIPLE PAGES")
-    multiple_pages(NEXT_TEXT, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links = [URL], pdf_links = [], xlsx_links = [], links_visited = [])
+pdf_links, xlsx_links = scrape_website(URL,TAGS)

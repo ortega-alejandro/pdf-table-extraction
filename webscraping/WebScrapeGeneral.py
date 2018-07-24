@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 18 15:14:26 2018
-
-@author: brookeerickson
-"""
-
 from bs4 import BeautifulSoup
 from requests import get
 import datetime
@@ -161,7 +153,7 @@ def one_page(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LA
 def multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited, PRINT_MODE):
     page_num = 1
     while all_links:
-        pages = get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX,PRINT_MODE)
+        pages = get_next_page(page_num, all_links, NEXT_TEXT, URL_PREFIX, PRINT_MODE)
         
         while all_links:
             current = all_links[0]
