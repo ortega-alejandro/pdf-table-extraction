@@ -14,9 +14,19 @@ import re
 #url = 'http://energyaccess.org/resources/publications/'
 #TAGS = ['list-content items-list']
 #url = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
-#TAGS = ['library-card-image','small-12 medium-8 columns','docDownloads']
-url = 'https://policy.practicalaction.org/resources/publications/collection/energy'
-TAGS = [('div','list_item_content'),('ul','link')]
+#TAGS = [('div', 'library-card-image'), ('div', 'small-12 medium-8 columns'),('div', 'docDownloads')]
+#url = 'https://policy.practicalaction.org/resources/publications/collection/energy'
+#TAGS = NA
+#url = 'https://www.ruralelec.org/publications'
+#TAGS = [('div','col-xs-6 col-sm-3'), ('div','col-sm-8 group-left'), ('span', 'file')]
+#url = 'http://ggim.un.org/knowledgebase/KnowledgebaseArticle51491.aspx'
+#TAGS = [('div', 'i-row')]
+#url = 'http://www.wame2015.org/database'
+#TAGS = [('div', 'wame-box'), ('div','media')]
+url = 'https://africaopendata.org/dataset'
+#TAGS = [('div','dataset-resource-list'),('ul','resource-list'),('div','actions')]
+#TAGS = [('li','dataset-item'),('ul','resource-list'),('div','actions')]
+TAGS = [('h5', 'dataset-heading'), ('ul','resource-list'),('div','actions')]
 
 all_links = [url]
 links_visited = []
@@ -24,6 +34,20 @@ pdf_links = []
 xlsx_links = []
 URL_PREFIX = re.search('(.*org/|.*com/|.*edu/)',url).group(0)
 prefix_length = len(URL_PREFIX)
+
+import os.path, time
+file = 'Downloads/kenya-mps-pay.xlsx'
+print("created: %s" % time.ctime(os.path.getctime(file)))
+#print("last modified: %s" % time.ctime(os.path.getmtime(path)))
+
+
+print('HERE')
+response = get(main_url)
+html_soup = BeautifulSoup(response.text, 'lxml')
+li = html_soup.find_all('h5', class_ = 'dataset-heading')
+for each in li:
+    date = each.find('div', class_='dataset-date')
+    print(date)
 
 
 while all_links:
@@ -38,11 +62,19 @@ while all_links:
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
         links = []
+        count = 0
         for tag_type,tag in TAGS:
             links_page = html_soup.find_all(tag_type, class_ = tag)
+            for each in links_page:
+                if (count == 0):
+                    date = each.find('div', class_='dataset-date')
+                    print(date)
+                else:
+                    continue
             if len(links_page)==0:
                 continue
             links+=links_page
+            count+=1
         for each in links:
             pdf_ = each.find_all('a',href=True)
             for link in pdf_:
@@ -50,7 +82,7 @@ while all_links:
                 if pdf_url[:prefix_length] != URL_PREFIX:
                     pdf_url = URL_PREFIX+str(pdf_url)
                 if pdf_url not in links_visited:
-                    if pdf_url[-4:] == '.pdf':
+                    if 'pdf' in pdf_url:
                         pdf_links.append(pdf_url)
                         links_visited.append(pdf_url)
                     elif pdf_url[-5:] == '.xlsx':
@@ -59,7 +91,7 @@ while all_links:
                     else:
                         all_links.append(pdf_url)
                         links_visited.append(pdf_url)
-        if current[-4:] == '.pdf':
+        if 'pdf' in current:
             pdf_links.append(current)
         elif current[-5:] == '.xlsx':
             xlsx_links.append(current)
@@ -69,8 +101,8 @@ while all_links:
         all_links.append(pages)
 
     
-print ('all_links')
-print (all_links)
+#print ('all_links')
+#print (all_links)
 print ('links_visited')
 print (links_visited)
 print ('pdf_links')
@@ -80,45 +112,3 @@ for i in pdf_links:
 print ('xlsx_links')
 print (len(xlsx_links))
 #urllib.request.urlretrieve(pdf_url,'energy_crisis_recovery.pdf')
-
-
-'''url = 'http://www.undp.org/content/undp/en/home/librarypage/environment-energy/low_emission_climateresilientdevelopment/derisking-renewable-energy-investment/drei-tunisia.html'
-TAGS = ['library-card-image','docDownloads']
-all_links = [url]
-links_visited = []
-pdf_links = []
-URL_PREFIX = re.search('(.*org/|.*com/|.*edu/)',url).group(0)
-prefix_length = len(URL_PREFIX)
-
-response2 = get(url)
-html_soup_2 = BeautifulSoup(response2.text, 'html.parser')
-links = []
-for tag in TAGS:
-    links += html_soup_2.find_all('div', class_ = tag)
-for each in links:
-    pdf_ = each.find_all('a',href=True)
-    for link in pdf_:
-        pdf_url= link['href']
-        if pdf_url[:prefix_length] != URL_PREFIX:
-            pdf_url = URL_PREFIX+str(pdf_url)
-        if pdf_url not in links_visited:
-            if pdf_url[-4:] == '.pdf':
-                pdf_links.append(pdf_url)
-                links_visited.append(pdf_url)
-            else:
-                all_links.append(pdf_url)
-                links_visited.append(pdf_url)
-if url[-4:] == '.pdf':
-    pdf_links.append(url)
-all_links.remove(url)
-links_visited.append(url)
-
-
-print ('all_links')
-print (all_links)
-print ('links_visited')
-print (links_visited)
-print ('pdf_links')
-print (len(pdf_links))
-for i in pdf_links:
-    print (i)'''
