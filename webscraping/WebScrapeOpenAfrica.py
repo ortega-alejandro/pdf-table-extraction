@@ -96,7 +96,7 @@ def scrape_page(current, links, prefix_length, URL_PREFIX, pdf_links, xlsx_links
 def multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited, PRINT_MODE):
     page_num = 1
     while all_links:
-        pages = get_next_page(all_links, page_num, NEXT_TEXT, URL_PREFIX)
+        pages = get_next_page(all_links, page_num, NEXT_TEXT, URL_PREFIX, PRINT_MODE)
         
         while all_links:
             current = all_links[0]
@@ -105,7 +105,7 @@ def multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FO
             
             links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, [], html_soup, pages)
     
-        pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, prefix_length, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
+            pdf_links, xlsx_links, links_visited, all_links = scrape_page(current, links, prefix_length, URL_PREFIX, pdf_links, xlsx_links, links_visited, all_links)
        
         if len(pages)>0:
             #append next link to all_links
