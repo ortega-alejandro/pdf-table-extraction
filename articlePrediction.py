@@ -193,13 +193,13 @@ SORTED_SITE = False
 DATE_TAG = ('div','field field-name-post-date field-type-ds field-label-hidden')
 DATE_FORM = '%b %d, %Y'''
 
-NEXT_TEXT = 'Next »'
+'''NEXT_TEXT = 'Next »'
 URL = 'http://www.undp.org/content/undp/en/home/library.html?start=0&sort=date&view=cards&tag=topics:energy/energy-access'
 TAGS = [('div','library-card-image'),('div','small-12 medium-8 columns'),('div','docDownloads')]
 LAST_SCRAPE_DATE = 'January 1, 2017'
 SORTED_SITE = True
 DATE_TAG = ('div','library-card-date')
-DATE_FORM = '%B %d, %Y'
+DATE_FORM = '%B %d, %Y'''
 
 '''NEXT_TEXT = ''
 URL = 'http://www.cleanenergyministerial.org/publication-cem'
@@ -215,16 +215,16 @@ TAGS = [('div','col-xs-6 col-sm-3'),('span', 'file')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
-LAST_SCRAPE_DATE = '''''
+LAST_SCRAPE_DATE = '''
 
 
-'''NEXT_TEXT = ''
+NEXT_TEXT = ''
 URL = 'http://www.gnesd.org/PUBLICATIONS/Energy-Access-Theme'
 TAGS = [('div','contentmain')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
-LAST_SCRAPE_DATE = '''
+LAST_SCRAPE_DATE = ''
 
 '''NEXT_TEXT = 'More'
 URL = 'https://www.reeep.org/publications/'
@@ -248,7 +248,7 @@ TAGS = [('div','article articletype-2 topnews')]
 DATE_TAG = []
 DATE_FORM = ''
 SORTED_SITE = True
-LAST_SCRAPE_DATE = '''''
+LAST_SCRAPE_DATE = '''
 
 #FORBIDDEN??
 #NEXT_TEXT = 'More'
@@ -291,6 +291,7 @@ loaded_cv = pickle.load(open(cv_model, 'rb'))
 loaded_tfidfv = pickle.load(open(tfidfv_model, 'rb'))
 #bound for number of words to initially include in the ML model
 BOUND = 600
+WORD_LIMIT = 700
 #MAXIMUM PERCENTAGE OF TOTAL WORDS THAT WILL BE PARSED THROUGH
 PERC_LIMIT = 0.9
 #how many words to increment by if probability value is too low
@@ -300,6 +301,13 @@ RELEVANCY_THRESHOLD = 0.4
 original_prob = []
 new_prob = []
 relevant = []
+
+
+def process_and_tokenize(pdf_text): 
+    pdf_text = re.sub(r"\\n", " " , pdf_text) 
+    pdf_text_tok = pdf_text.split()
+    num_of_words = len(pdf_text_tok)
+    return pdf_text_tok, num_of_words
 
 #convert pdf url to text
 def pdf_from_url_to_txt(url):
@@ -323,17 +331,23 @@ def pdf_from_url_to_txt(url):
                                       caching=caching,
                                       check_extractable=True):
             interpreter.process_page(page)
+            text = str(retstr.getvalue())
+            #text = re.sub(r"\\n", " " , text) 
+            pdf_text_tok, num_of_words = process_and_tokenize(text)
+            if (num_of_words > WORD_LIMIT):
+                break
+        retstr.close()
         fp.close()
         device.close()
-        text = str(retstr.getvalue())
-        retstr.close()
     except PDFTextExtractionNotAllowed:
-        text = []
-    return str(text)
-
-def tokenize(pdf_text): 
-    pdf_text_tok = pdf_text.split()
-    num_of_words = len(pdf_text_tok)
+        print("PDFTextExtractionNotAllowed")
+        pdf_text_tok = []
+        num_of_words = -1
+    except urllib.error.HTTPError as err:
+        if err.code == 404:
+            print("HTTPError 404")
+            pdf_text_tok = []
+            num_of_words = -2
     return pdf_text_tok, num_of_words
 
 #return value between 0-1, probability of whether a pdf is relevant or not
@@ -345,28 +359,29 @@ def predict(pdf_text_arr):
 
 
 for pdf in pdf_files:
-    print("PDF FILE: " + pdf)
-    pdf_text = pdf_from_url_to_txt(pdf)
-    pdf_text = re.sub(r"\\n", " " , pdf_text) 
-    pdf_text_tok, num_of_words = tokenize(pdf_text)
+    pdf_text_tok, num_of_words = pdf_from_url_to_txt(pdf)
     pdf_text_arr = pdf_text_tok[0:BOUND]
     pdf_text_arr = [" ".join(pdf_text_arr)]
     original_probability = predict(pdf_text_arr)
-    original_prob.append(original_probability) 
     new_probability = original_probability 
-    while (new_probability < RELEVANCY_THRESHOLD):
-        if (num_of_words < 5):
+    if (original_probability < RELEVANCY_THRESHOLD and num_of_words > 1):
+        while (BOUND < WORD_LIMIT):
+            BOUND += INCREMENT
+            pdf_text_arr = pdf_text_tok[0:BOUND]
+            pdf_text_arr = [" ".join(pdf_text_arr)]
+            new_probability = predict(pdf_text_arr)
+            #print("word count = " + str(BOUND) + ", probability = " + str(new_probability))
+    if (num_of_words <= 1):
             new_probability = 'NA'
-            break
-        BOUND += INCREMENT
-        pdf_text_arr = pdf_text_tok[0:BOUND]
-        pdf_text_arr = [" ".join(pdf_text_arr)]
-        new_probability = predict(pdf_text_arr)
-        #to debug
-        print("word count = " + str(BOUND) + ", probability = " + str(new_probability))
-        if ((BOUND/num_of_words) > PERC_LIMIT):
-            break
-    print('new probability: ' + str(new_probability))
+    if (num_of_words == -1):
+        original_probability = -1
+        new_probability = -1
+        relevant = 'PDFTextExtractionNotAllowed'
+    if (num_of_words == -2):
+        original_probability = -2
+        new_probability = -2
+        relevant = 'HTTPError 404'
+    original_prob.append(original_probability) 
     new_prob.append(new_probability)
 
 #determining relevancy as "yes" or "no" in a list (relevant) based on new probability value    
