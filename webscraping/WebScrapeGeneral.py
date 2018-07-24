@@ -80,7 +80,7 @@ def tags_by_date(TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, links
                     date = date.text.strip()
                     date = datetime.datetime.strptime(date,DATE_FORM).date()
                     last_date = datetime.datetime.strptime(LAST_SCRAPE_DATE,DATE_FORM).date()
-                    if date>=last_date:
+                    if date >= last_date:
                         links.append(each)
                     elif SORTED_SITE:
                         #if site is sorted and you have reached the last scraped date, pages = ''
@@ -195,10 +195,14 @@ def multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FO
     return pdf_links, xlsx_links
         
 
+<<<<<<< HEAD
 '''FUNCTION: SCRAPE THE WEBSITE'''
 def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [], PRINT_MODE=False):
+=======
+#URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes(TEXT_FILE)
+>>>>>>> d1c2e28bdacfb6e21d96752558f3af06aa21145a
 
-    URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes(TEXT_FILE)
+#print(DATE_TAG)
 
     URL_PREFIX = re.search('.*org/|.*com/|.*edu/',URL).group(0)
     prefix_length = len(URL_PREFIX)
@@ -215,4 +219,7 @@ def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [
 #################################################################################
 
 TEXT_FILE = 'ruralelec.txt'
+<<<<<<< HEAD
 pdf_links, xlsx_links = scrape_website(TEXT_FILE)
+=======
+>>>>>>> d1c2e28bdacfb6e21d96752558f3af06aa21145a

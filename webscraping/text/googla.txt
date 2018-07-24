@@ -1,4 +1,4 @@
-
+More
 https://www.gogla.org/publications
 div,ds-1col node node-resource node-teaser view-mode-teaser clearfix
 0
