@@ -1,0 +1,7 @@
+Next »
+https://www.afdb.org/en/documents/publications/
+td,title|table,details
+1
+div,date
+%d/%m/%Y
+27/06/2018

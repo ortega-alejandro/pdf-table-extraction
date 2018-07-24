@@ -89,7 +89,7 @@ while all_links:
         current = all_links[0]
         response = get(current)
         html_soup = BeautifulSoup(response.text, 'lxml')
-
+        print(html_soup)
         links, pages = tags_by_date(TAGS, DATE_TAG, DATE_FORM, [], html_soup, pages)
         print(links)
 
