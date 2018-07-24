@@ -196,7 +196,7 @@ def multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FO
         
 
 '''FUNCTION: SCRAPE THE WEBSITE'''
-def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [], PRINT_MODE=True):
+def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [], PRINT_MODE=False):
 
     URL, TAGS, SORTED_SITE, DATE_TAG, DATE_FORM, NEXT_TEXT, LAST_SCRAPE_DATE = get_url_attributes(TEXT_FILE)
 
@@ -211,7 +211,8 @@ def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [
         print ("MULTIPLE PAGES")
         pdf_links, xlsx_links = multiple_pages(NEXT_TEXT, prefix_length, URL_PREFIX, TAGS, DATE_TAG, DATE_FORM, LAST_SCRAPE_DATE, SORTED_SITE, all_links, pdf_links, xlsx_links, links_visited, PRINT_MODE)
 
+    return pdf_links, xlsx_links
 #################################################################################
 
 TEXT_FILE = 'ruralelec.txt'
-scrape_website(TEXT_FILE)
+pdf_links, xlsx_links = scrape_website(TEXT_FILE)
