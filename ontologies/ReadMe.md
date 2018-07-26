@@ -19,12 +19,13 @@ The algorithm first finds word frequency for the entire document then continues 
 * dictionary = {key, value} = {page number, list of most relevant keywords on that page in descending order of frequency}
 * dictionary = {key, value} = {keyword, list of most relevent pages for that keyword in descending order of frequency}
 
-### Optional parameters include:
+### Optional parameters:
 * page_threshold=0.005
 * threshold=0.03
 * number_of_levels=3
 
 ### Ontology Structure:
 The algorithm currently runs on an owl file ontology, but will work for any ontology structure. To change the structure, only change the code between the '----REFERENCING OWL FILE ONTOLOGY----' headers. At the end of this section, the ontology should be stored in an array as follows:
-  arr = [['term_1_label_1'], ['term_2_label_1', 'term_2_label_2', 'term_2_label_3'], ...]
-  note: arr[i] contains the list of all labels for that term
+* arr = [['term_1_label_1'], ['term_2_label_1', 'term_2_label_2', 'term_2_label_3'], ...]
+
+note: arr[i] contains the list of all labels for that term
