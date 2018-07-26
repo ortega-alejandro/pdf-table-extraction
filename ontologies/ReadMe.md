@@ -19,7 +19,7 @@ The algorithm first finds word frequency for the entire document then continues 
 * dictionary = {key, value} = {page number, list of most relevant keywords on that page in descending order of frequency}
 * dictionary = {key, value} = {keyword, list of most relevent pages for that keyword in descending order of frequency}
 
-### Optional parameters:
+### Optional Parameters:
 * page_threshold=0.005
 * threshold=0.03
 * number_of_levels=3
