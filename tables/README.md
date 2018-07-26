@@ -21,7 +21,7 @@ The `detect_tables` function has the following parameters:
 * `debug` prints out helpful information for debugging
 
 The `convert_all` function has the following parameters:
-* `src` is the filepath of the text files; by default set to `'../output/txt/'`
+* `src` is the filepath of the text files; by default set to `'../output/txt/'`; __Note:__ this parameter and the `dst` parameter of `detect_tables` should be set to the same values
 * `dst` is where the converted CSV files will be placed; by default set to `'../output/csv/'`
 * `name` is the name of the csv output; by default set to table
 * `debug` prints out helpful information for debugging
