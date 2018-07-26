@@ -1,1 +1,1 @@
-#Folder for Table Extraction Inpur
+# Folder for Table Extraction Input
