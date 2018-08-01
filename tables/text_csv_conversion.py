@@ -171,7 +171,7 @@ def check_lines(text,index,top):
 
     
 
-def flag(points,real_points, top, debug=False):
+def flag(points,real_points, top, k, debug=False):
     '''
     Parameters:
     text is the array representation of the table returned by text_list()
@@ -192,7 +192,7 @@ def flag(points,real_points, top, debug=False):
     warning = False
     if len(set(real_points)) != len(points):
         warning = True
-        warnings.warn("STACKED HEADERS, MANUAL CHECK")
+        warnings.warn("STACKED HEADERS, MANUAL CHECK TABLE "+str(k))
         if debug:
             print("top: " + str(top))
         top += 1
@@ -260,7 +260,7 @@ def one_column(text, final, regex_space):
         final.write(line)
 
 
-def convert_csv(src, file, debug=False):
+def convert_csv(src, file, k, debug=False):
     text = open(src, 'r')
     final = open(file, 'w')
     regex_space = '([ ]{2,})+'
@@ -283,7 +283,7 @@ def convert_csv(src, file, debug=False):
         print(top)
         print()
     if top is None:
-        one_column(text)
+        one_column(text, final, regex_space)
     else:
         points = check_whitespace(text, max_column_arr, top, max_length)
         if debug:
@@ -296,7 +296,7 @@ def convert_csv(src, file, debug=False):
             if debug:
                 print("new top: " + str(new_top))
             points = check_whitespace(text, max_column_arr, new_top, max_length)
-            new_top, is_stacked = flag(max_column_arr, points, new_top)
+            new_top, is_stacked = flag(max_column_arr, points, new_top, k)
         if debug:
             print("final top: " + str(new_top))
         convert(text, points, data, new_top, regex_space, final)
@@ -313,13 +313,14 @@ def correct_encodings(line):
     line = re.sub('Ð', '-', line)
     return line
 
-def convert_all(src='../output/txt/', dst='../output/csv/', name='table', debug=False):
+def convert_all(name= 'table', src='../output/txt/', dst='../output/csv/', debug=False):
     files = os.listdir(src)
     print (files)
     k = 0
     for file in files:
-        if debug and file.endswith('.txt'):
-            print(src + file)
-            print(dst + name + str(k) + '.csv')
-        convert_csv(src + file, dst + name + str(k) + '.csv')
-        k += 1
+        if file.endswith('.txt'):
+            if debug:
+                print(src + file)
+                print(dst + name + str(k) + '.csv')
+            convert_csv(src + file, dst + name + str(k) + '.csv',k)
+            k += 1

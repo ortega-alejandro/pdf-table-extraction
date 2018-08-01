@@ -247,8 +247,8 @@ def multiple_tables(pdf_file, page_no, line_count, top_coords, line_coords, tabl
 
 # input = kernel_size, rho, theta, threshold, minLineLength, maxLineGap
 # returns number of tables in the whole document
-def detect_tables(src, dst='../output/txt/', image='../output/img/', kernel_size=5, rho=1, theta=np.pi / 2, threshold=50, min_line_length=500,
-                  maxLineGap=1, file='temp', debug=False):
+def detect_tables(src, file, dst='../output/txt/', image='../output/img/', kernel_size=5, rho=1, theta=np.pi / 2, threshold=50, min_line_length=500,
+                  maxLineGap=1, debug=False):
     fp, num = pdf_setup(src)
     table_count = 0
     for page_no in range(num):

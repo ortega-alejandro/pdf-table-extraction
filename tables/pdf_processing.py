@@ -18,7 +18,7 @@ def convert_pdf(src, dst='../output/img/'):
         with Image(filename=src, resolution=200) as img:
             img.save(filename=dst + 'image.jpg')
     except:
-        subprocess.call(["convert", "-density", "200", src, "-quality", "100", "-sharpen", "0x1.0", dst + "image.jpg"],shell=True)
+        subprocess.call(["convert", "-density", "200", src, "-quality", "100", "-sharpen", "0x1.0", dst + "image.jpg"])
 
 
 def clean(directory):
