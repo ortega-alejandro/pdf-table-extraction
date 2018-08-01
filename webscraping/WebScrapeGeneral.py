@@ -206,7 +206,7 @@ def scrape_website(TEXT_FILE, pdf_links = [], xlsx_links = [], links_visited = [
     return pdf_links, xlsx_links
 
 
-TEXT_FILE = 'ruralelec.txt'
+TEXT_FILE = 'eclipse-workspace/project24/webscraping/text/ruralelec.txt'
 
 pdf_links, xlsx_links = scrape_website(TEXT_FILE)
 

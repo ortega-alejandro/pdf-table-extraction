@@ -418,7 +418,7 @@ def run(my_pdf, ontology_path, page_threshold=0.005, threshold=0.03, number_of_l
     return simplified_chains, matches_freq_sorted, pmatches_by_page, pmatches_by_keyword
 
 
-my_pdf = "desktop/OneDrive_2018-05-27/ml/3AC1DACD68A35562618B2A9D7B92DE841964B.pdf"
+my_pdf = "desktop/OneDrive_2018-05-27/ml/1A4098F8BD1AF9D0AEB01C96DB34FDC2FEB6E764.pdf"
 ontology_path = "file:///users/brookeerickson/downloads/root-ontology-v9.owl"
 onto = get_ontology(ontology_path).load()
 
