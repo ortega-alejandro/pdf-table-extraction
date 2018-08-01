@@ -1,4 +1,4 @@
-# Data Virtualization
+# Auto-Identification
 ## Python Packages:
 * BeautifulSoup
 ## Documentation
@@ -14,3 +14,4 @@ The function `scrape_website(text_file)` in `WebScrapeGeneral.py` takes in a tex
 Using the information in the text file, `scrape_website()` returns lists of all links that end in .pdf or .xslx, which are then fed into the binary classifier to determine relevancy. Although we have seen links to pdf's that do not end in the .pdf extension, there is typically no way to differentiate these links from other ones. Given that difficulty and their overall rarity, we have not tried to add those links.
 
 For the `WebScrape<Site-Name>.py` files, these sites have minor deviations that require changes to the general webscraping algorithm. For these files, calling `scrape_website(<PARAMETERS>)` with the URL, TAGS and other parameters as nececssary for that particular site.
+

@@ -6,7 +6,7 @@ import time
 
 def main():
     t1 = time.time()
-    pdf = "/Users/brookeerickson/desktop/OneDrive_2018-05-27/ml/211D5A5C43091C227A6D735138D9C11D9A85D96.pdf"
+    pdf = "../input/1807.10399.pdf"
     convert_pdf(pdf)  # Converts pdf to JPEG
     print(detect_tables(pdf))  # Extracts the tables
     convert_all()  # Converts text output to CSV

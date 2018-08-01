@@ -1,12 +1,3 @@
-# Project 24
-## Dependencies
-* ImageMagick
-* GhostScript
-## Python Packages
-* PdfMiner
-* PyPdf2
-* cv2
-* PIL
-* Wand
+# Data+ Project 24: Maximizing Data Communication for Faster Energy Access
 
-Look at the main.py file for an example of how to extract the tables
+Readme's for each sub-project are available in the folders with documentation.
