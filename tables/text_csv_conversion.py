@@ -318,7 +318,7 @@ def convert_all(src='../output/txt/', dst='../output/csv/', name='table', debug=
     files = os.listdir(src)
     k = 0
     for file in files:
-        if debug:
+        if debug and file.endswith('.txt'):
             print(src + file)
             print(dst + name + str(k) + '.csv')
         convert_csv(src + file, dst + name + str(k) + '.csv')

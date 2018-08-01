@@ -6,7 +6,7 @@ import time
 
 def main():
     t1 = time.time()
-    pdf = "../input/sample.pdf"
+    pdf = "../input/1807.10399.pdf"
     convert_pdf(pdf)  # Converts pdf to JPEG
     print(detect_tables(pdf))  # Extracts the tables
     convert_all()  # Converts text output to CSV

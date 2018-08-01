@@ -263,7 +263,7 @@ def detect_tables(src, dst='../output/txt/', image='../output/img/', kernel_size
 
         '''FIND AND DRAW LINES'''
         lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]), min_line_length, maxLineGap)
-        linefile_name = 'images/houghlines'
+        linefile_name = '../output/img/houghlines'
         line_coords, num_lines = get_lines(page_no, lines, line_image, img, jpg_width, jpg_height, pdf_width,
                                            pdf_height, linefile_name)
 
