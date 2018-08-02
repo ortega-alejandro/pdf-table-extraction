@@ -1,7 +1,0 @@
-Next
-http://www.ren21.net/resources/publications/
-footer,cmsms_post_footer entry-meta|div,cmsms_post_content entry-content
-1
-
-
-

@@ -1,7 +1,0 @@
-
-http://www.cleanenergyministerial.org/publication-cem
-div,publication-latest-cem
-1
-div,views-field views-field-field-publication-date
-%Y-%m-%d
-2018-05-30

@@ -1,7 +1,0 @@
-More
-https://www.gogla.org/publications
-div,ds-1col node node-resource node-teaser view-mode-teaser clearfix
-0
-div,field field-name-post-date field-type-ds field-label-hidden
-%b %d, %Y
-Dec 31, 2017
