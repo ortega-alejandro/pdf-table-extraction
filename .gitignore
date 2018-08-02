@@ -4,3 +4,7 @@ output/csv/*
 output/img/*
 output/txt/*
 .sav
+<<<<<<< HEAD
+=======
+*.pdf
+>>>>>>> 8ae1ac948aa09f7f835ff729e4b68883ebdd5a3c
