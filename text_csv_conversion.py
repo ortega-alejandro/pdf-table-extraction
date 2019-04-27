@@ -313,6 +313,7 @@ def correct_encodings(line):
     line = re.sub('Ð', '-', line)
     return line
 
+
 def convert_all(src='../output/txt/', dst='../output/csv/', name='table', debug=False):
     files = os.listdir(src)
     print (files)
